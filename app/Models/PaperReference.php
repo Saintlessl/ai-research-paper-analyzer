@@ -1,0 +1,1 @@
+<?php namespace App\Models; use Illuminate\Database\Eloquent\Model; class PaperReference extends Model {protected $guarded=[]; protected function casts():array{return ['cited_in_text'=>'boolean'];}}

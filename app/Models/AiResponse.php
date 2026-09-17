@@ -1,0 +1,1 @@
+<?php namespace App\Models; use Illuminate\Database\Eloquent\Model; class AiResponse extends Model {protected $guarded=[]; protected function casts():array{return ['success'=>'boolean','payload'=>'array'];}}

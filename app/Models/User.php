@@ -5,6 +5,8 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use App\Enums\RoleName;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
@@ -38,6 +40,18 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class);
+    }
+
+    public function hasRole(RoleName|string $role): bool
+    {
+        $name = $role instanceof RoleName ? $role->value : $role;
+
+        return $this->roles()->where('name', $name)->exists();
+    }
+
     protected function casts(): array
     {
         return [
