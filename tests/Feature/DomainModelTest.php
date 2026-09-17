@@ -19,7 +19,7 @@ class DomainModelTest extends TestCase
         $user = User::factory()->create();
         $user->roles()->attach($role);
         $paper = Paper::create(['title' => 'Test', 'status' => 'UPLOADED', 'uploaded_by' => $user->id, 'file_path' => 'papers/test.pdf']);
-        $paper->authors()->create(['name' => 'Ada Lovelace', 'position' => 1]);
+        $paper->authors()->create(['name' => 'Ada Lovelace', 'author_order' => 1]);
 
         $this->assertTrue($user->hasRole(RoleName::Researcher));
         $this->assertSame('Ada Lovelace', $paper->authors->first()->name);

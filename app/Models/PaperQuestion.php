@@ -5,27 +5,34 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class PaperSection extends Model
+class PaperQuestion extends Model
 {
     protected $fillable = [
         'paper_id',
-        'heading',
-        'content',
-        'page_start',
-        'page_end',
-        'chunk_id',
+        'user_id',
+        'question',
+        'answer',
+        'found',
+        'evidence',
+        'status',
+        'request_id',
     ];
 
     protected function casts(): array
     {
         return [
-            'page_start' => 'integer',
-            'page_end' => 'integer',
+            'found' => 'boolean',
+            'evidence' => 'array',
         ];
     }
 
     public function paper(): BelongsTo
     {
         return $this->belongsTo(Paper::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }
