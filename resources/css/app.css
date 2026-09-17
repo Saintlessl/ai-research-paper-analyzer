@@ -1,3 +1,30 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root { color-scheme: light; font-synthesis: none; }
+  html { @apply scroll-smooth bg-slate-50; }
+  body { @apply m-0 bg-slate-50 text-slate-900 antialiased; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  ::selection { @apply bg-teal-100 text-teal-950; }
+  :focus-visible { @apply outline-none ring-2 ring-teal-600 ring-offset-2 ring-offset-white; }
+}
+@layer components {
+  .surface { @apply rounded-2xl border border-slate-200 bg-white shadow-sm; }
+  .page-wrap { @apply mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8; }
+  .eyebrow { @apply text-xs font-semibold uppercase tracking-[0.16em] text-teal-700; }
+  .btn-primary { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-50; }
+  .btn-secondary { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50; }
+  .field { @apply block min-h-11 w-full rounded-xl border-slate-300 bg-white text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-teal-600 focus:ring-teal-600; }
+  .status { @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold; }
+  .status-neutral { @apply bg-slate-100 text-slate-700; }
+  .status-warning { @apply bg-amber-100 text-amber-800; }
+  .status-info { @apply bg-blue-100 text-blue-800; }
+  .status-success { @apply bg-emerald-100 text-emerald-800; }
+  .status-danger { @apply bg-rose-100 text-rose-800; }
+  .table-shell { @apply overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm; }
+  .data-table { @apply min-w-full divide-y divide-slate-200 text-left text-sm; }
+  .data-table th { @apply whitespace-nowrap bg-slate-50 px-5 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500; }
+  .data-table td { @apply px-5 py-4 text-slate-700; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }

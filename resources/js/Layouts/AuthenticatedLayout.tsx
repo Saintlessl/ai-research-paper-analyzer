@@ -1,179 +1,24 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
-import Dropdown from '@/Components/Dropdown';
-import NavLink from '@/Components/NavLink';
-import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
+import { initials, normalizeRole } from '@/lib/contracts';
+import type { PageProps } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
+import { BarChart3, Bell, BookOpen, ChevronDown, FileCheck2, GitCompareArrows, LayoutDashboard, LogOut, Menu, Settings, ShieldCheck, Upload, UserRound, Users, X } from 'lucide-react';
 import { PropsWithChildren, ReactNode, useState } from 'react';
 
-export default function Authenticated({
-    header,
-    children,
-}: PropsWithChildren<{ header?: ReactNode }>) {
-    const user = usePage().props.auth.user;
-
-    const [showingNavigationDropdown, setShowingNavigationDropdown] =
-        useState(false);
-
-    return (
-        <div className="min-h-screen bg-gray-100">
-            <nav className="border-b border-gray-100 bg-white">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="flex h-16 justify-between">
-                        <div className="flex">
-                            <div className="flex shrink-0 items-center">
-                                <Link href="/">
-                                    <ApplicationLogo className="block h-9 w-auto fill-current text-gray-800" />
-                                </Link>
-                            </div>
-
-                            <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink
-                                    href={route('dashboard')}
-                                    active={route().current('dashboard')}
-                                >
-                                    Dashboard
-                                </NavLink>
-                            </div>
-                        </div>
-
-                        <div className="hidden sm:ms-6 sm:flex sm:items-center">
-                            <div className="relative ms-3">
-                                <Dropdown>
-                                    <Dropdown.Trigger>
-                                        <span className="inline-flex rounded-md">
-                                            <button
-                                                type="button"
-                                                className="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
-                                            >
-                                                {user.name}
-
-                                                <svg
-                                                    className="-me-0.5 ms-2 h-4 w-4"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    viewBox="0 0 20 20"
-                                                    fill="currentColor"
-                                                >
-                                                    <path
-                                                        fillRule="evenodd"
-                                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                        clipRule="evenodd"
-                                                    />
-                                                </svg>
-                                            </button>
-                                        </span>
-                                    </Dropdown.Trigger>
-
-                                    <Dropdown.Content>
-                                        <Dropdown.Link
-                                            href={route('profile.edit')}
-                                        >
-                                            Profile
-                                        </Dropdown.Link>
-                                        <Dropdown.Link
-                                            href={route('logout')}
-                                            method="post"
-                                            as="button"
-                                        >
-                                            Log Out
-                                        </Dropdown.Link>
-                                    </Dropdown.Content>
-                                </Dropdown>
-                            </div>
-                        </div>
-
-                        <div className="-me-2 flex items-center sm:hidden">
-                            <button
-                                onClick={() =>
-                                    setShowingNavigationDropdown(
-                                        (previousState) => !previousState,
-                                    )
-                                }
-                                className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 transition duration-150 ease-in-out hover:bg-gray-100 hover:text-gray-500 focus:bg-gray-100 focus:text-gray-500 focus:outline-none"
-                            >
-                                <svg
-                                    className="h-6 w-6"
-                                    stroke="currentColor"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        className={
-                                            !showingNavigationDropdown
-                                                ? 'inline-flex'
-                                                : 'hidden'
-                                        }
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M4 6h16M4 12h16M4 18h16"
-                                    />
-                                    <path
-                                        className={
-                                            showingNavigationDropdown
-                                                ? 'inline-flex'
-                                                : 'hidden'
-                                        }
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div
-                    className={
-                        (showingNavigationDropdown ? 'block' : 'hidden') +
-                        ' sm:hidden'
-                    }
-                >
-                    <div className="space-y-1 pb-3 pt-2">
-                        <ResponsiveNavLink
-                            href={route('dashboard')}
-                            active={route().current('dashboard')}
-                        >
-                            Dashboard
-                        </ResponsiveNavLink>
-                    </div>
-
-                    <div className="border-t border-gray-200 pb-1 pt-4">
-                        <div className="px-4">
-                            <div className="text-base font-medium text-gray-800">
-                                {user.name}
-                            </div>
-                            <div className="text-sm font-medium text-gray-500">
-                                {user.email}
-                            </div>
-                        </div>
-
-                        <div className="mt-3 space-y-1">
-                            <ResponsiveNavLink href={route('profile.edit')}>
-                                Profile
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink
-                                method="post"
-                                href={route('logout')}
-                                as="button"
-                            >
-                                Log Out
-                            </ResponsiveNavLink>
-                        </div>
-                    </div>
-                </div>
-            </nav>
-
-            {header && (
-                <header className="bg-white shadow">
-                    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-                        {header}
-                    </div>
-                </header>
-            )}
-
-            <main>{children}</main>
-        </div>
-    );
+const roleNav = {
+ researcher: [{ label:'Dashboard', href:'/dashboard', icon:LayoutDashboard },{label:'Papers',href:'/papers',icon:BookOpen},{label:'Upload paper',href:'/papers/create',icon:Upload},{label:'Compare',href:'/papers/compare',icon:GitCompareArrows},{label:'Reviews',href:'/reviews',icon:FileCheck2}],
+ reviewer: [{label:'Dashboard',href:'/dashboard',icon:LayoutDashboard},{label:'Assigned papers',href:'/reviewer/papers',icon:BookOpen},{label:'Review workspace',href:'/reviewer/reviews',icon:FileCheck2}],
+ admin: [{label:'Dashboard',href:'/dashboard',icon:LayoutDashboard},{label:'Users',href:'/admin/users',icon:Users},{label:'Papers',href:'/admin/papers',icon:BookOpen},{label:'Assignments',href:'/admin/reviewer-assignments',icon:UserRound},{label:'AI jobs',href:'/admin/jobs',icon:Settings},{label:'Failed jobs',href:'/admin/failed-jobs',icon:ShieldCheck},{label:'Logs & audits',href:'/admin/audit-logs',icon:FileCheck2},{label:'Statistics',href:'/admin/statistics',icon:BarChart3}],
+};
+const activePath = (href:string) => window.location.pathname === href || (href !== '/dashboard' && window.location.pathname.startsWith(`${href}/`));
+export default function Authenticated({ header, children }: PropsWithChildren<{ header?: ReactNode }>) {
+ const { auth, flash } = usePage<PageProps>().props; const user = auth.user; const role = normalizeRole(user); const [mobile,setMobile]=useState(false); const [account,setAccount]=useState(false);
+ return <div className="min-h-screen bg-slate-50"><a href="#main-content" className="fixed left-3 top-3 z-[60] -translate-y-20 rounded-lg bg-white px-4 py-2 text-sm font-semibold shadow focus:translate-y-0">Skip to content</a>
+ <aside className="fixed inset-y-0 left-0 z-50 hidden w-64 flex-col border-r border-slate-200 bg-slate-950 text-white lg:flex"><Brand/><Sidebar role={role}/><div className="border-t border-slate-800 p-4"><p className="text-xs text-slate-500">Signed in as</p><p className="mt-1 truncate text-sm font-semibold">{user.name}</p><p className="truncate text-xs text-slate-400">{user.email}</p></div></aside>
+ {mobile && <div className="fixed inset-0 z-50 lg:hidden"><button aria-label="Close navigation" className="absolute inset-0 bg-slate-950/50" onClick={()=>setMobile(false)}/><aside className="relative flex h-full w-[min(19rem,86vw)] flex-col bg-slate-950 text-white shadow-xl"><div className="flex items-center justify-between"><Brand/><button className="mr-3 rounded-lg p-2" onClick={()=>setMobile(false)}><X/></button></div><Sidebar role={role}/></aside></div>}
+ <div className="min-w-0 lg:pl-64"><header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-6 lg:px-8"><div className="flex items-center gap-3"><button aria-label="Open navigation" className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 lg:hidden" onClick={()=>setMobile(true)}><Menu/></button><div className="hidden sm:block"><p className="text-sm font-semibold text-slate-900">Research workspace</p><p className="text-xs capitalize text-slate-500">{role} access</p></div></div><div className="flex items-center gap-2"><button aria-label="Notifications" className="rounded-xl p-2.5 text-slate-500 hover:bg-slate-100"><Bell className="h-5 w-5"/></button><div className="relative"><button aria-expanded={account} onClick={()=>setAccount(!account)} className="flex min-h-11 items-center gap-2 rounded-xl p-1.5 hover:bg-slate-100"><span className="grid h-8 w-8 place-items-center rounded-lg bg-teal-100 text-xs font-bold text-teal-800">{initials(user.name)}</span><span className="hidden max-w-32 truncate text-sm font-semibold sm:block">{user.name}</span><ChevronDown className="h-4 w-4 text-slate-400"/></button>{account && <div className="absolute right-0 mt-2 w-52 rounded-xl border border-slate-200 bg-white p-2 shadow-xl"><Link href="/profile" className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-slate-50"><UserRound className="h-4 w-4"/>Profile</Link><Link href="/logout" method="post" as="button" className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-rose-700 hover:bg-rose-50"><LogOut className="h-4 w-4"/>Log out</Link></div>}</div></div></header>
+ {flash?.success && <div role="status" className="mx-4 mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 sm:mx-6 lg:mx-8">{flash.success}</div>}{flash?.error && <div role="alert" className="mx-4 mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 sm:mx-6 lg:mx-8">{flash.error}</div>}
+ {header && <div className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6 lg:px-8">{header}</div>}<main id="main-content" className="min-w-0">{children}</main></div></div>;
 }
+function Brand(){return <Link href="/dashboard" className="flex h-20 items-center gap-3 px-5"><span className="rounded-xl bg-teal-500 p-2 text-slate-950"><ApplicationLogo className="h-6 w-6"/></span><span><strong className="block text-sm tracking-wide">ScholarLens</strong><span className="text-xs text-slate-400">AI paper analysis</span></span></Link>}
+function Sidebar({role}:{role:keyof typeof roleNav}){return <nav aria-label="Primary" className="flex-1 space-y-1 overflow-y-auto px-3 py-3">{roleNav[role].map(({label,href,icon:Icon})=><Link key={href} href={href} className={`flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium transition ${activePath(href)?'bg-teal-500 text-slate-950':'text-slate-300 hover:bg-slate-900 hover:text-white'}`}><Icon className="h-5 w-5"/><span>{label}</span></Link>)}</nav>}
