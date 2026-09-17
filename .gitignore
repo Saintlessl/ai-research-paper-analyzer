@@ -1,28 +1,38 @@
+/.phpunit.cache
 /.idea
 /.vscode
 /.fleet
+/.nova
+/.zed
 .DS_Store
 Thumbs.db
 
-# Laravel
+# Environment and credentials
 /.env
 /.env.*
 !/.env.example
+!/ai-service/.env.example
+/auth.json
+
+# Laravel and PHP
 /vendor
-/node_modules
 /public/build
 /public/hot
 /public/storage
 /storage/*.key
-/storage/framework/cache/data/*
-/storage/framework/sessions/*
-/storage/framework/testing/*
-/storage/framework/views/*
-/storage/logs/*
+/storage/pail
 /bootstrap/cache/*.php
+.phpactor.json
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
 
-# Python
-/ai-service/.env
+# JavaScript
+/node_modules
+npm-debug.log*
+yarn-error.log*
+
+# Python AI service
 /ai-service/.venv
 /ai-service/__pycache__
 /ai-service/.pytest_cache
@@ -31,9 +41,7 @@ Thumbs.db
 **/__pycache__/
 *.py[cod]
 
-# Testing and generated artifacts
+# Generated output
 /coverage
-/.phpunit.cache
-.phpunit.result.cache
 *.log
 *.tmp
