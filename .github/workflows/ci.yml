@@ -1,0 +1,131 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  laravel:
+    name: Laravel tests and security
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, intl, pdo_sqlite, sqlite3
+          coverage: none
+
+      - name: Validate Composer metadata
+        run: composer validate --strict
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Audit PHP dependencies
+        run: composer audit --locked
+
+      - name: Run migrations from a clean database
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+        run: php artisan migrate:fresh --force
+
+      - name: Run Laravel tests
+        run: php artisan test
+
+  frontend:
+    name: Frontend tests and production build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Run frontend tests
+        run: npm test
+
+      - name: Type-check and build production assets
+        run: npm run build
+
+  ai-service:
+    name: FastAPI tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    defaults:
+      run:
+        working-directory: ai-service
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.11
+
+      - name: Verify dependency lock
+        run: uv sync --locked --all-groups
+
+      - name: Run FastAPI tests with warnings as errors
+        env:
+          PYTHONWARNINGS: error
+        run: uv run pytest -q
+
+  repository-safety:
+    name: Repository safety checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reject tracked environment files
+        shell: bash
+        run: |
+          if git ls-files | grep -E '(^|/)\.env($|\.)' | grep -vE '(^|/)\.env\.example$'; then
+            echo 'A private environment file is tracked.' >&2
+            exit 1
+          fi
+
+      - name: Reject whitespace errors
+        run: git diff --check HEAD^..HEAD
+
+      - name: Scan tracked source for credential assignments
+        shell: bash
+        run: |
+          if git grep -nEI '(GEMINI_API_KEY|FASTAPI_INTERNAL_TOKEN|APP_KEY)[[:space:]]*=[[:space:]]*[^[:space:]#]+' -- ':!*.example'; then
+            echo 'A credential-like value was found in tracked source.' >&2
+            exit 1
+          fi
