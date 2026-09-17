@@ -34,6 +34,22 @@ jobs:
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
 
+      - name: Set up Node for Laravel HTTP tests
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Build frontend assets for Laravel HTTP tests
+        run: |
+          npm ci
+          npm run build
+
+      - name: Configure Laravel application
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+
       - name: Audit PHP dependencies
         run: composer audit --locked
 
