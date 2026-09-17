@@ -1,0 +1,39 @@
+/.idea
+/.vscode
+/.fleet
+.DS_Store
+Thumbs.db
+
+# Laravel
+/.env
+/.env.*
+!/.env.example
+/vendor
+/node_modules
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/testing/*
+/storage/framework/views/*
+/storage/logs/*
+/bootstrap/cache/*.php
+
+# Python
+/ai-service/.env
+/ai-service/.venv
+/ai-service/__pycache__
+/ai-service/.pytest_cache
+/ai-service/.mypy_cache
+/ai-service/.ruff_cache
+**/__pycache__/
+*.py[cod]
+
+# Testing and generated artifacts
+/coverage
+/.phpunit.cache
+.phpunit.result.cache
+*.log
+*.tmp
