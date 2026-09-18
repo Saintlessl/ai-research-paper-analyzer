@@ -1,6 +1,6 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import { initials, normalizeRole } from '@/lib/contracts';
-import type { PageProps } from '@/types';
+import type { AuthenticatedPageProps } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { BarChart3, Bell, BookOpen, ChevronDown, FileCheck2, GitCompareArrows, LayoutDashboard, LogOut, Menu, Settings, ShieldCheck, Upload, UserRound, Users, X } from 'lucide-react';
 import { PropsWithChildren, ReactNode, useState } from 'react';
@@ -12,7 +12,7 @@ const roleNav = {
 };
 const activePath = (href:string) => window.location.pathname === href || (href !== '/dashboard' && window.location.pathname.startsWith(`${href}/`));
 export default function Authenticated({ header, children }: PropsWithChildren<{ header?: ReactNode }>) {
- const { auth, flash } = usePage<PageProps>().props; const user = auth.user; const role = normalizeRole(user); const [mobile,setMobile]=useState(false); const [account,setAccount]=useState(false);
+ const { auth, flash } = usePage<AuthenticatedPageProps>().props; const user = auth.user; const role = normalizeRole(user); const [mobile,setMobile]=useState(false); const [account,setAccount]=useState(false);
  return <div className="min-h-screen bg-slate-50"><a href="#main-content" className="fixed left-3 top-3 z-[60] -translate-y-20 rounded-lg bg-white px-4 py-2 text-sm font-semibold shadow focus:translate-y-0">Skip to content</a>
  <aside className="fixed inset-y-0 left-0 z-50 hidden w-64 flex-col border-r border-slate-200 bg-slate-950 text-white lg:flex"><Brand/><Sidebar role={role}/><div className="border-t border-slate-800 p-4"><p className="text-xs text-slate-500">Signed in as</p><p className="mt-1 truncate text-sm font-semibold">{user.name}</p><p className="truncate text-xs text-slate-400">{user.email}</p></div></aside>
  {mobile && <div className="fixed inset-0 z-50 lg:hidden"><button aria-label="Close navigation" className="absolute inset-0 bg-slate-950/50" onClick={()=>setMobile(false)}/><aside className="relative flex h-full w-[min(19rem,86vw)] flex-col bg-slate-950 text-white shadow-xl"><div className="flex items-center justify-between"><Brand/><button className="mr-3 rounded-lg p-2" onClick={()=>setMobile(false)}><X/></button></div><Sidebar role={role}/></aside></div>}
@@ -21,4 +21,4 @@ export default function Authenticated({ header, children }: PropsWithChildren<{ 
  {header && <div className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6 lg:px-8">{header}</div>}<main id="main-content" className="min-w-0">{children}</main></div></div>;
 }
 function Brand(){return <Link href="/dashboard" className="flex h-20 items-center gap-3 px-5"><span className="rounded-xl bg-teal-500 p-2 text-slate-950"><ApplicationLogo className="h-6 w-6"/></span><span><strong className="block text-sm tracking-wide">ScholarLens</strong><span className="text-xs text-slate-400">AI paper analysis</span></span></Link>}
-function Sidebar({role}:{role:keyof typeof roleNav}){return <nav aria-label="Primary" className="flex-1 space-y-1 overflow-y-auto px-3 py-3">{roleNav[role].map(({label,href,icon:Icon})=><Link key={href} href={href} className={`flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium transition ${activePath(href)?'bg-teal-500 text-slate-950':'text-slate-300 hover:bg-slate-900 hover:text-white'}`}><Icon className="h-5 w-5"/><span>{label}</span></Link>)}</nav>}
+function Sidebar({role}:{role:keyof typeof roleNav|null}){const links=role?roleNav[role]:[];return <nav aria-label="Primary" className="flex-1 space-y-1 overflow-y-auto px-3 py-3">{links.map(({label,href,icon:Icon})=><Link key={href} href={href} className={`flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium transition ${activePath(href)?'bg-teal-500 text-slate-950':'text-slate-300 hover:bg-slate-900 hover:text-white'}`}><Icon className="h-5 w-5"/><span>{label}</span></Link>)}</nav>}

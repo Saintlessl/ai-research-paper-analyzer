@@ -4,9 +4,11 @@ Legend: `[ ]` Pending · `[~]` In Progress · `[x]` Completed · `[!]` Blocked
 
 - [x] Workspace and Git repository initialized
 - [x] Architecture and implementation plan documented
-- [!] GitHub remote (GitHub CLI is unavailable and no repository URL was supplied)
-- [~] Laravel, Inertia React, TypeScript, Tailwind foundation
-- [ ] Authentication and RBAC
+- [x] Public GitHub remote configured and synchronized
+- [x] Reproducible Laravel, frontend, FastAPI, and repository-safety CI
+- [x] Laravel, Inertia React, TypeScript, Tailwind foundation
+- [x] Normalized academic and operational data contract
+- [x] Authentication and normalized RBAC with middleware and policies
 - [ ] Paper CRUD and secure PDF upload
 - [ ] Queue and AI job tracking
 - [ ] FastAPI foundation and internal authentication

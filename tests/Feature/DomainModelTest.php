@@ -15,7 +15,7 @@ class DomainModelTest extends TestCase
 
     public function test_roles_are_normalized_and_paper_relations_are_available(): void
     {
-        $role = Role::create(['name' => RoleName::Researcher]);
+        $role = Role::query()->where('name', RoleName::Researcher->value)->firstOrFail();
         $user = User::factory()->create();
         $user->roles()->attach($role);
         $paper = Paper::create(['title' => 'Test', 'status' => 'UPLOADED', 'uploaded_by' => $user->id, 'file_path' => 'papers/test.pdf']);

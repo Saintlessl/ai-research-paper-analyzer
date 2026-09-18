@@ -1,14 +1,13 @@
-import type { User } from '@/types';
-
 export type Role = 'researcher' | 'reviewer' | 'admin';
+type RoleSource = { role?: string | null; roles?: Array<{ name: string } | string> };
 export type PaperState = 'uploaded' | 'queued' | 'processing' | 'analyzed' | 'failed' | 'archived' | 'unknown';
 export type Paginated<T> = { data: T[]; current_page?: number; last_page?: number; total?: number; links?: { url: string | null; label: string; active: boolean }[] };
 
 export const asArray = <T>(value?: T[] | Paginated<T> | null): T[] => Array.isArray(value) ? value : value?.data ?? [];
-export const normalizeRole = (user: Partial<User> & { role?: string; roles?: Array<{ name: string } | string> }): Role => {
-    const candidate = user.role ?? (typeof user.roles?.[0] === 'string' ? user.roles[0] : user.roles?.[0]?.name) ?? 'researcher';
-    const role = candidate.toLowerCase();
-    return role === 'admin' || role === 'reviewer' ? role : 'researcher';
+export const normalizeRole = (user: RoleSource): Role | null => {
+    const candidate = user.role ?? (typeof user.roles?.[0] === 'string' ? user.roles[0] : user.roles?.[0]?.name);
+    const role = candidate?.toLowerCase();
+    return role === 'admin' || role === 'reviewer' || role === 'researcher' ? role : null;
 };
 export const paperStatus = (value?: string | null) => {
     const state = (value ?? 'unknown').toLowerCase() as PaperState;

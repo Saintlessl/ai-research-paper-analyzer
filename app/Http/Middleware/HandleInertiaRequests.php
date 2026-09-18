@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\RoleName;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -29,10 +31,30 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        /** @var User|null $user */
+        $user = $request->user();
+
+        $user?->loadMissing('roles');
+
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user === null ? null : [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'email_verified_at' => $user->email_verified_at,
+                    'role' => $user->primaryRole()?->value,
+                    'roles' => array_map(
+                        static fn (RoleName $role): string => $role->value,
+                        $user->roleNames(),
+                    ),
+                ],
+                'capabilities' => $user?->capabilities() ?? [
+                    'upload_papers' => false,
+                    'review_papers' => false,
+                    'manage_system' => false,
+                ],
             ],
         ];
     }

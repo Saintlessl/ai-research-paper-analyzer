@@ -5,7 +5,9 @@ describe('frontend data contract adapters', () => {
     it('normalizes role shapes from Laravel resources', () => {
         expect(normalizeRole({ role: 'ADMIN' })).toBe('admin');
         expect(normalizeRole({ roles: [{ name: 'Reviewer' }] })).toBe('reviewer');
-        expect(normalizeRole({})).toBe('researcher');
+        expect(normalizeRole({ roles: ['researcher'] })).toBe('researcher');
+        expect(normalizeRole({})).toBeNull();
+        expect(normalizeRole({ role: 'unknown' })).toBeNull();
     });
 
     it('accepts arrays and Laravel paginators without inventing records', () => {
