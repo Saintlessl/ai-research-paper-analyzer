@@ -38,6 +38,15 @@ return [
             'report' => false,
         ],
 
+        'paper-files' => [
+            'driver' => 'local',
+            'root' => storage_path('app/paper-files'),
+            'serve' => false,
+            'visibility' => 'private',
+            'throw' => true,
+            'report' => true,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

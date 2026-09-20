@@ -18,9 +18,11 @@ class Paper extends Model
         'doi',
         'keywords',
         'file_path',
+        'storage_disk',
         'original_filename',
         'mime_type',
         'file_size',
+        'checksum_sha256',
         'status',
         'uploaded_by',
     ];

@@ -31,6 +31,19 @@ class DomainSchemaTest extends TestCase
         $this->assertTrue(Schema::hasTable('paper_comparisons'));
     }
 
+    public function test_papers_without_known_storage_metadata_do_not_guess_a_private_disk(): void
+    {
+        $user = User::factory()->create();
+        $paper = Paper::query()->create([
+            'title' => 'Legacy paper',
+            'status' => 'UPLOADED',
+            'uploaded_by' => $user->id,
+            'file_path' => 'legacy/paper.pdf',
+        ]);
+
+        $this->assertNull($paper->fresh()?->storage_disk);
+    }
+
     public function test_scores_are_constrained_to_zero_through_one_hundred(): void
     {
         $user = User::factory()->create();
