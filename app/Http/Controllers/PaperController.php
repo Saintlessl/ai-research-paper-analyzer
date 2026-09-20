@@ -133,7 +133,7 @@ class PaperController extends Controller
         ]);
     }
 
-    public function show(Paper $paper): Response
+    public function show(\Illuminate\Http\Request $request, Paper $paper): Response
     {
         Gate::authorize('view', $paper);
 
@@ -166,6 +166,10 @@ class PaperController extends Controller
         $aiReview = $paper->reviews->firstWhere('reviewer.name', 'AI Reviewer');
         $humanReviews = $paper->reviews->where('reviewer.name', '!==', 'AI Reviewer')->values();
 
+        $reviewers = $request->user()->hasRole('admin') 
+            ? \App\Models\User::whereHas('roles', fn($q) => $q->where('name', 'REVIEWER'))->get(['id', 'name'])
+            : [];
+
         return Inertia::render('Papers/Show', [
             'paper' => [
                 'id' => $paper->id,
@@ -194,6 +198,7 @@ class PaperController extends Controller
             'questions' => $paper->questions,
             'aiReview' => $aiReview,
             'reviews' => $humanReviews,
+            'reviewers' => $reviewers,
             'can' => $can,
         ]);
     }
