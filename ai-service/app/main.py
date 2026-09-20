@@ -14,7 +14,8 @@ from .schemas import AnalysisData, AnalyzeRequest, CompareData, CompareRequest, 
 from .services.gemini import GeminiProvider, Provider, ProviderError
 from .services.prompts import build_prompt
 from .services.structured_output import StructuredOutputError, generate_structured
-from .services.pipeline import DocumentProcessingError, process_pdf
+from .services.pipeline import DocumentProcessingError, _document_from_pages, chunk_document, process_pdf
+from .services.references import analyze_references
 from .settings import settings
 
 logger = logging.getLogger(__name__)
@@ -48,11 +49,25 @@ def get_provider() -> Provider:
     return GeminiProvider(api_key, config.gemini_model, config.gemini_timeout_seconds)
 
 
-def execute(request_id, kind, text, model, provider, question=None):
+def execute(request_id, kind, text, model, provider, question=None, deterministic=None):
     prompt = build_prompt(kind, text, model, question)
     try:
         result = generate_structured(provider, prompt, model, settings().repair_attempts)
-        return {"success": True, "request_id": str(request_id), "data": result.model_dump(mode="json")}
+        data = result.model_dump(mode="json")
+        if deterministic is not None:
+            data["citation_analysis"] = deterministic
+            data["references"] = deterministic["references"]
+            data["ai_suspected_citation_findings"] = [
+                {
+                    "label": "AI_SUSPECTED",
+                    "finding": f"Reference {item['citation_key']} may be irrelevant",
+                    "reason": item["reason"],
+                    "evidence": item["evidence"],
+                    "confidence": 0.5,
+                }
+                for item in deterministic["potentially_irrelevant_patterns"]
+            ]
+        return {"success": True, "request_id": str(request_id), "data": data}
     except (ProviderError, StructuredOutputError, RuntimeError) as exc:
         if isinstance(exc, ProviderError):
             classification = exc.code
@@ -89,6 +104,7 @@ def health():
 
 @api.post("/analyze")
 async def analyze(request: Request, provider: Provider = Depends(get_provider)):
+    citation_analysis = None
     if request.headers.get("content-type", "").startswith("multipart/form-data"):
         form = await request.form()
         upload = form.get("file")
@@ -100,6 +116,7 @@ async def analyze(request: Request, provider: Provider = Depends(get_provider)):
             title = str(form["title"])
             authors = json.loads(str(form["authors"]))
             document = process_pdf(await upload.read())
+            citation_analysis = analyze_references(document, document.chunks, recent_year_cutoff=2021)
         except (KeyError, TypeError, ValueError, json.JSONDecodeError, DocumentProcessingError) as exc:
             raise HTTPException(422, detail={"code": "INVALID_PDF", "message": "PDF could not be processed"}) from exc
         context = "\n\n".join(
@@ -115,7 +132,9 @@ async def analyze(request: Request, provider: Provider = Depends(get_provider)):
             body = AnalyzeRequest.model_validate(await request.json())
         except (ValueError, ValidationError) as exc:
             raise HTTPException(422, detail={"code": "VALIDATION_ERROR", "message": "Request validation failed"}) from exc
-    return execute(body.request_id, "analysis", body.text, AnalysisData, provider)
+        document = _document_from_pages([body.text])
+        citation_analysis = analyze_references(document, chunk_document(document), recent_year_cutoff=2021)
+    return execute(body.request_id, "analysis", body.text, AnalysisData, provider, deterministic=citation_analysis)
 
 
 @api.post("/review")

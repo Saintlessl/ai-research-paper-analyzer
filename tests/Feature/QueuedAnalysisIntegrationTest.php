@@ -49,6 +49,16 @@ class QueuedAnalysisIntegrationTest extends TestCase
             'methodology' => ['research_problem' => null, 'research_questions' => null, 'research_objective' => null, 'hypothesis' => null, 'study_design' => null, 'methods' => null, 'dataset' => null, 'sample_size' => null, 'evidence' => []],
             'scores' => array_map(fn ($criterion) => compact('criterion') + ['score' => 70, 'reason' => 'Grounded', 'evidence' => []], $criteria),
             'findings' => [], 'limitations' => [], 'strengths' => [], 'weaknesses' => [], 'keywords' => [],
+            'ai_suspected_citation_findings' => [],
+            'citation_analysis' => [
+                'total_references' => 0, 'publication_years' => [], 'recent_year_cutoff' => 2021,
+                'recent_count' => 0, 'older_count' => 0,
+                'citation_patterns' => ['numeric_bracket' => 0, 'author_year' => 0],
+                'in_text_citations_missing_from_bibliography' => [],
+                'bibliography_entries_apparently_uncited' => [],
+                'potentially_irrelevant_patterns' => [], 'references' => [],
+                'method' => 'deterministic_heuristic',
+            ],
         ];
     }
 }

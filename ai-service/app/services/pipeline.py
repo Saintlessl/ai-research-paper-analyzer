@@ -72,7 +72,7 @@ class ProcessedDocument:
 HEADINGS = {
     "abstract", "introduction", "background", "related work", "literature review",
     "methods", "methodology", "materials and methods", "results", "discussion",
-    "conclusion", "conclusions", "references", "limitations", "acknowledgements",
+    "conclusion", "conclusions", "references", "bibliography", "limitations", "acknowledgements",
 }
 HEADING_RE = re.compile(r"^\s*(?:(?:\d+(?:\.\d+)*)[.)]?\s+)?(.+?)\s*:?[\s]*$", re.IGNORECASE)
 
@@ -216,13 +216,10 @@ def process_pdf(data: bytes, config: ChunkingConfig = ChunkingConfig()) -> Proce
     return ProcessedDocument(document.text, document.pages, tuple(detect_sections(document)), chunk_document(document, config))
 
 
-def analyze_citations(text: str) -> dict:
-    bibliography = text.split("References", 1)[-1] if "References" in text else ""
-    refs = [line for line in bibliography.splitlines() if re.match(r"^\s*\[?\d+\]?[.)]?", line) and line.strip()]
-    cited = set(re.findall(r"\[(\d+)\]", text.split("References", 1)[0]))
-    keys = {re.search(r"\d+", ref).group() for ref in refs if re.search(r"\d+", ref)}
-    years = [int(year) for year in re.findall(r"\b(?:19|20)\d{2}\b", bibliography)]
-    return {"total_references": len(refs), "publication_years": years, "citations_missing_from_bibliography": sorted(cited - keys), "apparently_uncited_references": sorted(keys - cited), "method": "deterministic_heuristic"}
+def analyze_citations(text: str, current_year: int = 2026) -> dict:
+    from .references import analyze_text_references
+
+    return analyze_text_references(text, current_year)
 
 
 def parse_validated(raw: str, model: type[T]) -> T:

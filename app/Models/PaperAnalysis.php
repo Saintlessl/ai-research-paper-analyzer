@@ -27,6 +27,8 @@ class PaperAnalysis extends Model
         'weaknesses',
         'keywords',
         'raw_output',
+        'citation_analysis',
+        'ai_suspected_citation_findings',
     ];
 
     protected function casts(): array
@@ -41,6 +43,8 @@ class PaperAnalysis extends Model
             'weaknesses' => 'array',
             'keywords' => 'array',
             'raw_output' => 'array',
+            'citation_analysis' => 'array',
+            'ai_suspected_citation_findings' => 'array',
             'sample_size' => 'integer',
         ];
     }

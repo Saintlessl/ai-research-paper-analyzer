@@ -74,6 +74,14 @@ class Finding(BaseModel):
     confidence: float | None = Field(default=None, ge=0, le=1)
 
 
+class CitationFinding(BaseModel):
+    label: Literal["AI_SUSPECTED"] = "AI_SUSPECTED"
+    finding: str
+    reason: str
+    evidence: list[Evidence] = Field(default_factory=list)
+    confidence: float = Field(ge=0, le=1)
+
+
 class AnalysisData(BaseModel):
     classification: Classification
     structure: ResearchStructure
@@ -84,6 +92,7 @@ class AnalysisData(BaseModel):
     strengths: list[Finding]
     weaknesses: list[Finding]
     keywords: list[str] = Field(default_factory=list)
+    ai_suspected_citation_findings: list[CitationFinding] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def exact_quality_scores(self):

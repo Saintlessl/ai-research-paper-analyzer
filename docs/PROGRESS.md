@@ -15,7 +15,7 @@ Legend: `[ ]` Pending · `[~]` In Progress · `[x]` Completed · `[!]` Blocked
 - [x] PDF extraction, text cleaning, page-preserving section detection, and configurable section-aware chunking
 - [x] Gemini structured-output integration and finite schema-validation repair
 - [x] Structured analysis, scoring, findings, evidence mapping
-- [ ] Citation and reference analysis
+- [x] Citation and reference analysis
 - [ ] AI and human reviewer workflows
 - [ ] Grounded paper Q&A
 - [ ] Paper comparison

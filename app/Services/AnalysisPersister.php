@@ -48,10 +48,17 @@ class AnalysisPersister
                 'weaknesses' => $data['weaknesses'],
                 'keywords' => $data['keywords'],
                 'raw_output' => $data,
+                'citation_analysis' => $data['citation_analysis'],
+                'ai_suspected_citation_findings' => $data['ai_suspected_citation_findings'],
             ]);
             $analysis->scores()->createMany($data['scores']);
             $analysis->findings()->createMany(array_merge(
                 $data['findings'], $data['limitations'], $data['strengths'], $data['weaknesses'],
+            ));
+            $paper->references()->delete();
+            $paper->references()->createMany(array_map(
+                fn (array $reference): array => Arr::except($reference, ['evidence']),
+                $data['citation_analysis']['references'],
             ));
 
             return $analysis->load(['scores', 'findings']);
@@ -102,6 +109,35 @@ class AnalysisPersister
             'weaknesses' => ['present', 'array'],
             'keywords' => ['present', 'array'],
             'keywords.*' => ['string'],
+            'ai_suspected_citation_findings' => ['present', 'array'],
+            'ai_suspected_citation_findings.*.label' => ['required', Rule::in(['AI_SUSPECTED'])],
+            'ai_suspected_citation_findings.*.finding' => ['required', 'string'],
+            'ai_suspected_citation_findings.*.reason' => ['required', 'string'],
+            'ai_suspected_citation_findings.*.confidence' => ['required', 'numeric', 'between:0,1'],
+            'ai_suspected_citation_findings.*.evidence' => ['present', 'array'],
+            'citation_analysis' => ['required', 'array'],
+            'citation_analysis.total_references' => ['required', 'integer', 'min:0'],
+            'citation_analysis.publication_years' => ['present', 'array'],
+            'citation_analysis.recent_year_cutoff' => ['required', 'integer'],
+            'citation_analysis.recent_count' => ['required', 'integer', 'min:0'],
+            'citation_analysis.older_count' => ['required', 'integer', 'min:0'],
+            'citation_analysis.citation_patterns' => ['required', 'array'],
+            'citation_analysis.in_text_citations_missing_from_bibliography' => ['present', 'array'],
+            'citation_analysis.bibliography_entries_apparently_uncited' => ['present', 'array'],
+            'citation_analysis.potentially_irrelevant_patterns' => ['present', 'array'],
+            'citation_analysis.references' => ['present', 'array'],
+            'citation_analysis.method' => ['required', Rule::in(['deterministic_heuristic'])],
+            'citation_analysis.references.*.raw_text' => ['required', 'string'],
+            'citation_analysis.references.*.citation_key' => ['nullable', 'string'],
+            'citation_analysis.references.*.title' => $nullableString,
+            'citation_analysis.references.*.authors' => ['present', 'array'],
+            'citation_analysis.references.*.publication_year' => ['nullable', 'integer'],
+            'citation_analysis.references.*.doi' => $nullableString,
+            'citation_analysis.references.*.url' => $nullableString,
+            'citation_analysis.references.*.citation_count' => ['required', 'integer', 'min:0'],
+            'citation_analysis.references.*.cited_in_text' => ['required', 'boolean'],
+            'citation_analysis.references.*.issues' => ['present', 'array'],
+            'citation_analysis.references.*.evidence' => ['present', 'array'],
         ];
         foreach (['findings' => 'finding', 'limitations' => 'limitation', 'strengths' => 'strength', 'weaknesses' => 'weakness'] as $field => $kind) {
             $rules["$field.*.kind"] = ['required', Rule::in([$kind])];

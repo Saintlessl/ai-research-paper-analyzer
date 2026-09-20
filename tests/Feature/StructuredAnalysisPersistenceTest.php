@@ -32,6 +32,9 @@ class StructuredAnalysisPersistenceTest extends TestCase
         $this->assertCount(4, $analysis->findings);
         $this->assertSame('chunk-0002', $analysis->scores->first()->evidence[0]['chunk_id']);
         $this->assertSame('finding', $analysis->findings->firstWhere('category', 'results')->kind);
+        $this->assertSame(1, $analysis->citation_analysis['total_references']);
+        $this->assertSame('AI_SUSPECTED', $analysis->ai_suspected_citation_findings[0]['label']);
+        $this->assertDatabaseHas('paper_references', ['paper_id' => $paper->id, 'citation_key' => '1', 'citation_count' => 2]);
     }
 
     public function test_invalid_payload_rolls_back_without_replacing_existing_analysis(): void
@@ -50,6 +53,40 @@ class StructuredAnalysisPersistenceTest extends TestCase
             $this->assertDatabaseCount('paper_scores', 7);
             $this->assertDatabaseCount('paper_findings', 4);
         }
+    }
+
+    public function test_citation_analysis_and_normalized_references_are_replaced_atomically(): void
+    {
+        $paper = $this->paper();
+        $payload = $this->payload();
+        $payload['citation_analysis'] = [
+            'total_references' => 1, 'publication_years' => ['2024' => 1],
+            'recent_year_cutoff' => 2021, 'recent_count' => 1, 'older_count' => 0,
+            'citation_patterns' => ['numeric_bracket' => 1, 'author_year' => 0],
+            'in_text_citations_missing_from_bibliography' => [],
+            'bibliography_entries_apparently_uncited' => [], 'potentially_irrelevant_patterns' => [],
+            'method' => 'deterministic_heuristic', 'references' => [[
+            'raw_text' => '[1] Smith, J. (2024). Study. Journal.',
+            'citation_key' => '1', 'title' => 'Study', 'authors' => ['Smith, J'],
+            'publication_year' => 2024, 'doi' => null, 'url' => null,
+            'citation_count' => 1, 'cited_in_text' => true, 'issues' => [],
+            'evidence' => [['page' => 4, 'section' => 'References', 'chunk_id' => 'chunk-0004', 'excerpt' => '[1] Smith, J. (2024). Study. Journal.', 'confidence' => 1.0]],
+        ]]];
+
+        $analysis = app(AnalysisPersister::class)->persist($paper, $payload);
+
+        $this->assertSame(1, $analysis->raw_output['citation_analysis']['total_references']);
+        $this->assertDatabaseHas('paper_references', [
+            'paper_id' => $paper->id, 'citation_key' => '1', 'publication_year' => 2024,
+            'citation_count' => 1, 'cited_in_text' => true,
+        ]);
+        $this->assertSame(['Smith, J'], $paper->fresh()->references->first()->authors);
+
+        $replacement = $payload;
+        $replacement['citation_analysis']['total_references'] = 0;
+        $replacement['citation_analysis']['references'] = [];
+        app(AnalysisPersister::class)->persist($paper, $replacement);
+        $this->assertDatabaseMissing('paper_references', ['paper_id' => $paper->id]);
     }
 
     private function paper(): Paper
@@ -75,6 +112,23 @@ class StructuredAnalysisPersistenceTest extends TestCase
             'strengths' => [$item('strength', 'design', 'Randomized.')],
             'weaknesses' => [$item('weakness', 'generalisability', 'Limited setting.')],
             'keywords' => ['trial'],
+            'ai_suspected_citation_findings' => [[
+                'label' => 'AI_SUSPECTED', 'finding' => 'Potentially irrelevant citation',
+                'reason' => 'Title appears unrelated; human review required.', 'confidence' => .6, 'evidence' => $evidence,
+            ]],
+            'citation_analysis' => [
+                'total_references' => 1, 'publication_years' => [2024], 'recent_year_cutoff' => 2021,
+                'recent_count' => 1, 'older_count' => 0,
+                'citation_patterns' => ['numeric_bracket' => 2, 'author_year' => 0],
+                'in_text_citations_missing_from_bibliography' => [],
+                'bibliography_entries_apparently_uncited' => [], 'potentially_irrelevant_patterns' => [],
+                'method' => 'deterministic_heuristic',
+                'references' => [[
+                    'raw_text' => '[1] Smith. Study. 2024.', 'citation_key' => '1', 'title' => 'Study',
+                    'authors' => ['Smith'], 'publication_year' => 2024, 'doi' => null, 'url' => null,
+                    'citation_count' => 2, 'cited_in_text' => true, 'issues' => [], 'evidence' => $evidence,
+                ]],
+            ],
         ];
     }
 }
