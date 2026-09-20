@@ -1,5 +1,4 @@
 import hmac
-import json
 import logging
 from time import perf_counter
 from typing import Annotated
@@ -10,8 +9,9 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from .schemas import AnalysisData, AnalyzeRequest, CompareData, CompareRequest, QAData, QARequest, ReviewData, TextRequest
-from .services.gemini import GeminiProvider, Provider
-from .services.pipeline import parse_validated
+from .services.gemini import GeminiProvider, Provider, ProviderError
+from .services.prompts import build_prompt
+from .services.structured_output import StructuredOutputError, generate_structured
 from .settings import settings
 
 logger = logging.getLogger(__name__)
@@ -42,21 +42,23 @@ def authorize(authorization: Annotated[str | None, Header()] = None) -> None:
 def get_provider() -> Provider:
     config = settings()
     api_key = config.gemini_api_key.get_secret_value() if config.gemini_api_key else None
-    return GeminiProvider(api_key, config.gemini_model)
+    return GeminiProvider(api_key, config.gemini_model, config.gemini_timeout_seconds)
 
 
-SYSTEM = "You are an academic research analyst. Use only supplied context. Never invent missing information. Include evidence and return only JSON matching the requested schema."
-
-
-def execute(request_id, kind, text, model, provider):
-    prompt = f"{SYSTEM}\nOperation: {kind}\nSchema: {json.dumps(model.model_json_schema())}\nContext: {text}"
-    for attempt in range(settings().repair_attempts + 1):
-        try:
-            result = parse_validated(provider.generate(prompt if attempt == 0 else prompt + "\nRepair the prior invalid response."), model)
-            return {"success": True, "request_id": str(request_id), "data": result.model_dump(mode="json")}
-        except (ValueError, RuntimeError):
-            logger.warning("ai_attempt_failed request_id=%s operation=%s attempt=%s", request_id, kind, attempt + 1, exc_info=True)
-    raise HTTPException(502, detail={"code": "AI_PROCESSING_FAILED", "message": "Unable to process request"})
+def execute(request_id, kind, text, model, provider, question=None):
+    prompt = build_prompt(kind, text, model, question)
+    try:
+        result = generate_structured(provider, prompt, model, settings().repair_attempts)
+        return {"success": True, "request_id": str(request_id), "data": result.model_dump(mode="json")}
+    except (ProviderError, StructuredOutputError, RuntimeError) as exc:
+        if isinstance(exc, ProviderError):
+            classification = exc.code
+        elif isinstance(exc, StructuredOutputError):
+            classification = "PROVIDER_MALFORMED_OUTPUT"
+        else:
+            classification = "PROVIDER_UNAVAILABLE"
+        logger.warning("ai_request_failed request_id=%s operation=%s classification=%s", request_id, kind, classification)
+        raise HTTPException(502, detail={"code": "AI_PROCESSING_FAILED", "message": "Unable to process request"}) from exc
 
 
 @app.exception_handler(HTTPException)
@@ -94,7 +96,7 @@ def review(body: TextRequest, provider: Provider = Depends(get_provider)):
 
 @api.post("/qa")
 def qa(body: QARequest, provider: Provider = Depends(get_provider)):
-    return execute(body.request_id, "qa: " + body.question, body.text, QAData, provider)
+    return execute(body.request_id, "qa", body.text, QAData, provider, body.question)
 
 
 @api.post("/compare")

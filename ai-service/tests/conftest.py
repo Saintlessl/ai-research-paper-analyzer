@@ -4,7 +4,7 @@ from app.main import app, get_provider
 
 class FakeProvider:
     def __init__(self): self.responses=[]; self.calls=0
-    def generate(self, prompt: str) -> str:
+    def generate(self, prompt: str, schema: dict) -> str:
         self.calls += 1
         value=self.responses.pop(0)
         if isinstance(value, Exception): raise value

@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     internal_token: SecretStr
     gemini_api_key: SecretStr | None = None
     gemini_model: str = "gemini-2.5-flash"
+    gemini_timeout_seconds: float = Field(default=30, gt=0, le=300)
     repair_attempts: int = Field(default=1, ge=0, le=5)
     chunk_size: int = Field(default=6000, gt=0)
     chunk_overlap: int = Field(default=300, ge=0)
