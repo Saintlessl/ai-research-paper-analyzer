@@ -12,6 +12,7 @@ OPERATION_INSTRUCTIONS = {
     "review": "Produce a balanced peer review. Ground concerns and recommendation in supplied paper context.",
     "qa": "Answer only from supplied paper context. Set found=false when answer is unsupported.",
     "comparison": "Compare only supplied papers. Keep evidence attributable to correct paper.",
+    "recommendation": "Match the paper abstract and keywords against the provided list of reviewers. Recommend up to 3 best reviewers based on their expertise. Provide a clear reason for each recommendation.",
 }
 
 

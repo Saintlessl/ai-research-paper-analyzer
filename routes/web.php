@@ -78,6 +78,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/reviews/{review}', [\App\Http\Controllers\ReviewController::class, 'update'])->name('reviews.update');
     Route::post('/papers/{paper}/assign', [\App\Http\Controllers\ReviewerAssignmentController::class, 'store'])->name('papers.assignments.store');
     Route::delete('/papers/{paper}/assign/{reviewer}', [\App\Http\Controllers\ReviewerAssignmentController::class, 'destroy'])->name('papers.assignments.destroy');
+    Route::get('/papers/{paper}/recommendations', [\App\Http\Controllers\ReviewerRecommendationController::class, 'show'])->name('papers.recommendations');
 });
 
 Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {

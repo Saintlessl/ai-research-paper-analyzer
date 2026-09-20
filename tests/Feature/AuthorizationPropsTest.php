@@ -40,7 +40,7 @@ class AuthorizationPropsTest extends TestCase
         $admin->roles()->attach($adminRole);
 
         $this->actingAs($admin)
-            ->get('/dashboard')
+            ->get('/admin/dashboard')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('auth.user.role', RoleName::Admin->value)

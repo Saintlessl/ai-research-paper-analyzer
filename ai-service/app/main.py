@@ -10,7 +10,7 @@ from pydantic import ValidationError
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from .schemas import AnalysisData, AnalyzeRequest, CompareData, CompareRequest, QAData, QARequest, ReviewData, TextRequest
+from .schemas import AnalysisData, AnalyzeRequest, CompareData, CompareRequest, QAData, QARequest, ReviewData, TextRequest, RecommendRequest, RecommendResponse
 from .services.gemini import GeminiProvider, Provider, ProviderError
 from .services.prompts import build_prompt
 from .services.structured_output import StructuredOutputError, generate_structured
@@ -150,6 +150,13 @@ def qa(body: QARequest, provider: Provider = Depends(get_provider)):
 @api.post("/compare")
 def compare(body: CompareRequest, provider: Provider = Depends(get_provider)):
     return execute(body.request_id, "comparison", f"PAPER A:\n{body.paper_a.text}\nPAPER B:\n{body.paper_b.text}", CompareData, provider)
+
+
+@api.post("/recommend-reviewers")
+def recommend_reviewers(body: RecommendRequest, provider: Provider = Depends(get_provider)):
+    reviewers_text = "\n".join(f"- ID: {r.id}, Name: {r.name}, Expertise: {r.expertise or 'Unknown'}" for r in body.reviewers)
+    context = f"PAPER TITLE: {body.paper_title}\n\nPAPER ABSTRACT: {body.paper_abstract}\n\nPAPER KEYWORDS: {', '.join(body.paper_keywords)}\n\nAVAILABLE REVIEWERS:\n{reviewers_text}"
+    return execute(body.request_id, "recommendation", context, RecommendResponse, provider)
 
 
 app.include_router(api, dependencies=[Depends(authorize)])

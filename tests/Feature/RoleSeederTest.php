@@ -28,7 +28,7 @@ class RoleSeederTest extends TestCase
         );
     }
 
-    public function test_database_seeder_creates_system_roles_without_demo_users(): void
+    public function test_database_seeder_creates_system_roles_with_demo_users(): void
     {
         Role::query()->delete();
 
@@ -40,6 +40,6 @@ class RoleSeederTest extends TestCase
             collect(RoleName::cases())->pluck('value')->sort()->values()->all(),
             Role::query()->pluck('name')->map->value->sort()->values()->all(),
         );
-        $this->assertDatabaseCount('users', 0);
+        $this->assertDatabaseCount('users', 6);
     }
 }

@@ -163,3 +163,23 @@ class CompareRequest(BaseModel):
     request_id: UUID
     paper_a: ComparePaper
     paper_b: ComparePaper
+
+class ReviewerCandidate(BaseModel):
+    id: int
+    name: str
+    expertise: str | None = None
+
+class RecommendRequest(BaseModel):
+    request_id: UUID
+    paper_title: str
+    paper_abstract: str
+    paper_keywords: list[str] = Field(default_factory=list)
+    reviewers: list[ReviewerCandidate]
+
+class Recommendation(BaseModel):
+    reviewer_id: int
+    reason: str
+    confidence_score: float = Field(ge=0, le=1)
+
+class RecommendResponse(BaseModel):
+    recommendations: list[Recommendation]
