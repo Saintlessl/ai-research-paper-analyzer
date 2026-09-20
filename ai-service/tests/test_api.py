@@ -1,4 +1,6 @@
 import json
+from io import BytesIO
+from reportlab.pdfgen import canvas
 from fastapi.testclient import TestClient
 from app.main import app
 from app.services.pipeline import clean_text, detect_sections, chunk_pages, analyze_citations, parse_validated
@@ -17,11 +19,47 @@ def test_internal_endpoints_require_constant_time_bearer_auth():
     assert client.post('/api/v1/analyze', json={}).status_code == 401
     assert client.post('/api/v1/analyze', headers={"Authorization":"Bearer wrong"}, json={}).status_code == 401
 
+def analysis_payload():
+    evidence = [{"page": 1, "section": "Methods", "chunk_id": "chunk-0001", "excerpt": "A study.", "confidence": .9}]
+    criteria = ["clarity", "methodological_rigor", "novelty", "validity", "reproducibility", "significance", "evidence_quality"]
+    return {
+        "classification": {"paper_type": "Experimental", "research_domain": "Computer Science", "reason": "Experiment", "evidence": evidence},
+        "structure": {"summary": "Standard", "sections": [], "evidence": evidence},
+        "methodology": {"research_problem": None, "research_questions": None, "research_objective": None, "hypothesis": None, "study_design": None, "methods": None, "dataset": None, "sample_size": None, "evidence": []},
+        "scores": [{"criterion": criterion, "score": 70, "reason": "Grounded", "evidence": evidence} for criterion in criteria],
+        "findings": [], "limitations": [], "strengths": [], "weaknesses": [], "keywords": ["AI"],
+    }
+
+
 def test_analyze_contract_and_validation(fake_provider):
-    fake_provider.responses.append(json.dumps({"classification":{"paper_type":"Experimental","research_domain":"Computer Science"},"structure":{},"methodology":{},"scores":[],"findings":[],"keywords":["AI"],"citation_analysis":{}}))
+    fake_provider.responses.append(json.dumps(analysis_payload()))
     response=request('analyze', {"request_id":"123e4567-e89b-12d3-a456-426614174000","paper_id":1,"text":"Abstract\nA study.","metadata":{"title":"Paper","authors":[]}})
     assert response.status_code == 200
     assert response.json()["data"]["keywords"] == ["AI"]
+
+def test_analyze_pdf_extracts_uploaded_pdf_in_service(fake_provider):
+    output = BytesIO()
+    pdf = canvas.Canvas(output)
+    pdf.drawString(72, 800, "Abstract")
+    pdf.drawString(72, 780, "Uploaded paper text")
+    pdf.save()
+    fake_provider.responses.append(json.dumps(analysis_payload()))
+
+    response = client.post('/api/v1/analyze', headers=HEADERS | {'X-Request-ID': 'trace-pdf'}, data={
+        'request_id': '123e4567-e89b-12d3-a456-426614174000', 'paper_id': '1',
+        'title': 'Paper', 'authors': '[]',
+    }, files={'file': ('paper.pdf', output.getvalue(), 'application/pdf')})
+
+    assert response.status_code == 200
+    assert 'Uploaded paper text' in fake_provider.prompts[0]
+
+def test_analyze_pdf_rejects_malformed_pdf_without_calling_provider(fake_provider):
+    response = client.post('/api/v1/analyze', headers=HEADERS, data={
+        'request_id': '123e4567-e89b-12d3-a456-426614174000', 'paper_id': '1',
+        'title': 'Paper', 'authors': '[]',
+    }, files={'file': ('paper.pdf', b'not-pdf', 'application/pdf')})
+    assert response.status_code == 422
+    assert fake_provider.calls == 0
 
 def test_review_qa_compare_contracts(fake_provider):
     fake_provider.responses.extend([
@@ -34,7 +72,7 @@ def test_review_qa_compare_contracts(fake_provider):
     assert request('compare', common|{"paper_a":{"paper_id":1,"text":"a"},"paper_b":{"paper_id":2,"text":"b"}}).status_code==200
 
 def test_invalid_json_is_repaired_once(fake_provider):
-    fake_provider.responses.extend(['not json', json.dumps({"classification":{},"structure":{},"methodology":{},"scores":[],"findings":[],"keywords":[],"citation_analysis":{}})])
+    fake_provider.responses.extend(['not json', json.dumps(analysis_payload())])
     response=request('analyze', {"request_id":"123e4567-e89b-12d3-a456-426614174000","paper_id":1,"text":"x","metadata":{"title":"x","authors":[]}})
     assert response.status_code==200 and fake_provider.calls==2
 

@@ -8,7 +8,7 @@ If support is absent, state that it was not found. Return only JSON matching sup
 SCORING_RUBRIC = """For analysis scores, use 0-100: 0-39 inadequate, 40-59 weak, 60-74 adequate, 75-89 strong, 90-100 exceptional. Every score requires a concise reason grounded in supplied context."""
 
 OPERATION_INSTRUCTIONS = {
-    "analysis": "Analyze classification, structure, methodology, scores, findings, keywords, and citations without adding unsupported fields.",
+    "analysis": """Analyze only classification, research structure, methodology, findings, limitations, strengths, weaknesses, keywords, and exactly seven quality scores: clarity, methodological_rigor, novelty, validity, reproducibility, significance, and evidence_quality. Every claim and score must map evidence with page, section, chunk_id, excerpt, and confidence. Preserve unavailable locator values as null. Preserve unavailable methodology fields as null and say not found in the relevant reason or summary; never infer missing facts. Do not perform peer review, citation analysis, comparison, QA, or administrative work.""" ,
     "review": "Produce a balanced peer review. Ground concerns and recommendation in supplied paper context.",
     "qa": "Answer only from supplied paper context. Set found=false when answer is unsupported.",
     "comparison": "Compare only supplied papers. Keep evidence attributable to correct paper.",

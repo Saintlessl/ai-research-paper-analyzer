@@ -3,9 +3,10 @@ os.environ['FASTAPI_INTERNAL_TOKEN']='test-token'
 from app.main import app, get_provider
 
 class FakeProvider:
-    def __init__(self): self.responses=[]; self.calls=0
+    def __init__(self): self.responses=[]; self.calls=0; self.prompts=[]
     def generate(self, prompt: str, schema: dict) -> str:
         self.calls += 1
+        self.prompts.append(prompt)
         value=self.responses.pop(0)
         if isinstance(value, Exception): raise value
         return value

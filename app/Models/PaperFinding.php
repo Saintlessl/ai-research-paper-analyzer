@@ -9,6 +9,7 @@ class PaperFinding extends Model
 {
     protected $fillable = [
         'paper_analysis_id',
+        'kind',
         'severity',
         'category',
         'finding',

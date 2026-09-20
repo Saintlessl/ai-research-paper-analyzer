@@ -1,10 +1,12 @@
 import hmac
+import json
 import logging
 from time import perf_counter
 from typing import Annotated
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Request
+from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Request, UploadFile
+from pydantic import ValidationError
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
@@ -12,6 +14,7 @@ from .schemas import AnalysisData, AnalyzeRequest, CompareData, CompareRequest, 
 from .services.gemini import GeminiProvider, Provider, ProviderError
 from .services.prompts import build_prompt
 from .services.structured_output import StructuredOutputError, generate_structured
+from .services.pipeline import DocumentProcessingError, process_pdf
 from .settings import settings
 
 logger = logging.getLogger(__name__)
@@ -85,7 +88,33 @@ def health():
 
 
 @api.post("/analyze")
-def analyze(body: AnalyzeRequest, provider: Provider = Depends(get_provider)):
+async def analyze(request: Request, provider: Provider = Depends(get_provider)):
+    if request.headers.get("content-type", "").startswith("multipart/form-data"):
+        form = await request.form()
+        upload = form.get("file")
+        if upload is None or not hasattr(upload, "read"):
+            raise HTTPException(422, detail={"code": "VALIDATION_ERROR", "message": "Request validation failed"})
+        try:
+            request_id = form["request_id"]
+            paper_id = int(form["paper_id"])
+            title = str(form["title"])
+            authors = json.loads(str(form["authors"]))
+            document = process_pdf(await upload.read())
+        except (KeyError, TypeError, ValueError, json.JSONDecodeError, DocumentProcessingError) as exc:
+            raise HTTPException(422, detail={"code": "INVALID_PDF", "message": "PDF could not be processed"}) from exc
+        context = "\n\n".join(
+            f"[{chunk.chunk_id}; page {chunk.page_start}; section {chunk.section or 'unknown'}]\n{chunk.text}"
+            for chunk in document.chunks
+        )
+        try:
+            body = AnalyzeRequest(request_id=request_id, paper_id=paper_id, text=context, metadata={"title": title, "authors": authors})
+        except ValidationError as exc:
+            raise HTTPException(422, detail={"code": "VALIDATION_ERROR", "message": "Request validation failed"}) from exc
+    else:
+        try:
+            body = AnalyzeRequest.model_validate(await request.json())
+        except (ValueError, ValidationError) as exc:
+            raise HTTPException(422, detail={"code": "VALIDATION_ERROR", "message": "Request validation failed"}) from exc
     return execute(body.request_id, "analysis", body.text, AnalysisData, provider)
 
 

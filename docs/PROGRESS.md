@@ -14,7 +14,7 @@ Legend: `[ ]` Pending · `[~]` In Progress · `[x]` Completed · `[!]` Blocked
 - [x] FastAPI foundation and internal authentication
 - [x] PDF extraction, text cleaning, page-preserving section detection, and configurable section-aware chunking
 - [x] Gemini structured-output integration and finite schema-validation repair
-- [ ] Structured analysis, scoring, findings, evidence mapping
+- [x] Structured analysis, scoring, findings, evidence mapping
 - [ ] Citation and reference analysis
 - [ ] AI and human reviewer workflows
 - [ ] Grounded paper Q&A
