@@ -28,6 +28,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/papers/{paper}', [PaperController::class, 'update'])->name('papers.update');
     Route::delete('/papers/{paper}', [PaperController::class, 'destroy'])->name('papers.destroy');
     Route::get('/papers/{paper}', [PaperController::class, 'show'])->name('papers.show');
+    
+    // Q&A
+    Route::post('/papers/{paper}/questions', [\App\Http\Controllers\PaperQuestionController::class, 'store'])->name('papers.questions.store');
 });
 
 Route::middleware('auth')->group(function () {
