@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AiJobStatus;
 use App\Enums\PaperStatus;
 use App\Enums\RoleName;
 use App\Http\Requests\StorePaperRequest;
 use App\Http\Requests\UpdatePaperRequest;
+use App\Jobs\ProcessPaper;
+use App\Models\AiJob;
 use App\Models\AuditLog;
 use App\Models\Paper;
 use App\Models\User;
@@ -402,6 +405,28 @@ class PaperController extends Controller
                     'ip_address' => $request->ip(),
                     'user_agent' => $request->userAgent(),
                 ]);
+
+                $requestId = (string) Str::uuid();
+                $aiJob = $paper->aiJobs()->create([
+                    'request_id' => $requestId,
+                    'user_id' => $user->id,
+                    'type' => 'paper.analysis',
+                    'status' => AiJobStatus::Pending,
+                    'retry_count' => 0,
+                    'max_retries' => 3,
+                ]);
+
+                AuditLog::query()->create([
+                    'actor_id' => $user->id,
+                    'action' => 'ai_job.created',
+                    'target_type' => AiJob::class,
+                    'target_id' => $aiJob->id,
+                    'metadata' => ['request_id' => $requestId, 'paper_id' => $paper->id, 'type' => $aiJob->type],
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                ]);
+
+                ProcessPaper::dispatch($aiJob->id)->afterCommit();
 
                 return $paper;
             });

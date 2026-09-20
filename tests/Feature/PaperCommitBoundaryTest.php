@@ -13,6 +13,7 @@ use Illuminate\Database\Events\TransactionCommitting;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -26,6 +27,7 @@ class PaperCommitBoundaryTest extends TestCase
 
         $this->seed(RoleSeeder::class);
         Storage::fake('paper-files');
+        Queue::fake();
     }
 
     public function test_upload_rolls_back_and_removes_the_private_pdf_when_commit_is_interrupted(): void

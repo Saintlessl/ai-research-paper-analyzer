@@ -16,6 +16,7 @@ use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 use Mockery;
@@ -31,6 +32,7 @@ class PaperUploadTest extends TestCase
 
         $this->seed(RoleSeeder::class);
         Storage::fake('paper-files');
+        Queue::fake();
         config()->set('papers.storage_disk', 'paper-files');
     }
 
@@ -110,13 +112,13 @@ class PaperUploadTest extends TestCase
                 ->all(),
         );
 
-        $audit = AuditLog::query()->sole();
+        $audit = AuditLog::query()->where('action', 'paper.created')->sole();
         $this->assertSame($researcher->id, $audit->actor_id);
         $this->assertSame('paper.created', $audit->action);
         $this->assertSame(Paper::class, $audit->target_type);
         $this->assertSame($paper->id, $audit->target_id);
         $this->assertSame('PaperUploadTest/1.0', $audit->user_agent);
-        $this->assertDatabaseCount('ai_jobs', 0);
+        $this->assertDatabaseCount('ai_jobs', 1);
     }
 
     public function test_researcher_can_open_the_upload_form_with_the_server_upload_limit(): void

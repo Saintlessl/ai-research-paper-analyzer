@@ -10,7 +10,7 @@ Legend: `[ ]` Pending · `[~]` In Progress · `[x]` Completed · `[!]` Blocked
 - [x] Normalized academic and operational data contract
 - [x] Authentication and normalized RBAC with middleware and policies
 - [x] Paper CRUD and secure PDF upload
-- [ ] Queue and AI job tracking
+- [x] Queue and AI job tracking
 - [ ] FastAPI foundation and internal authentication
 - [ ] PDF extraction, section detection, and chunking
 - [ ] Gemini structured-output integration and repair
