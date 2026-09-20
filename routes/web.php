@@ -23,6 +23,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/papers', [PaperController::class, 'index'])->name('papers.index');
     Route::get('/papers/create', [PaperController::class, 'create'])->name('papers.create');
     Route::post('/papers', [PaperController::class, 'store'])->name('papers.store');
+    
+    // Comparison
+    Route::get('/papers/compare', [\App\Http\Controllers\PaperComparisonController::class, 'create'])->name('papers.compare.create');
+    Route::post('/papers/compare', [\App\Http\Controllers\PaperComparisonController::class, 'store'])->name('papers.compare.store');
+    Route::get('/papers/compare/{comparison}', [\App\Http\Controllers\PaperComparisonController::class, 'show'])->name('papers.compare.show');
+    
     Route::get('/papers/{paper}/edit', [PaperController::class, 'edit'])->name('papers.edit');
     Route::get('/papers/{paper}/download', [PaperController::class, 'download'])->name('papers.download');
     Route::patch('/papers/{paper}', [PaperController::class, 'update'])->name('papers.update');
