@@ -16,10 +16,10 @@ Legend: `[ ]` Pending · `[~]` In Progress · `[x]` Completed · `[!]` Blocked
 - [x] Gemini structured-output integration and finite schema-validation repair
 - [x] Structured analysis, scoring, findings, evidence mapping
 - [x] Citation and reference analysis
-- [ ] AI and human reviewer workflows
-- [ ] Grounded paper Q&A
-- [ ] Paper comparison
-- [ ] Admin monitoring, retries, logs, and statistics
-- [ ] Role-aware dashboards and production UX
-- [ ] Security and reliability audit
-- [ ] Documentation and final QA
+- [x] AI and human reviewer workflows
+- [x] Grounded paper Q&A
+- [x] Paper comparison
+- [x] Admin monitoring, retries, logs, and statistics
+- [x] Role-aware dashboards and production UX
+- [x] Security and reliability audit
+- [x] Documentation and final QA

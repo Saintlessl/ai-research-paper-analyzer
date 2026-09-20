@@ -1,66 +1,109 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# AI Research Paper Analyzer & Reviewer Assistant
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A full-stack, production-quality web application that helps researchers, journal editors, and reviewers automatically analyze academic research papers using AI.
 
-## About Laravel
+## Architecture
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+This application consists of two decoupled services:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+1. **Laravel (12.x)**: The core system of record, handling user authentication, role-based access control (RBAC), secure PDF storage, background queues (Redis), relational data (MySQL), and the React/Inertia frontend.
+2. **FastAPI (Python 3.11+)**: The stateless AI processing engine that interfaces with the Google Gemini API to chunk, process, and analyze academic papers.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Features
 
-## Learning Laravel
+- **Role-Aware Workspaces**: Distinct dashboards for Researchers, Reviewers, and Admins.
+- **Secure Storage**: Uploaded papers are kept out of public web roots.
+- **Background Processing**: AI analysis operations are queued asynchronously via Redis to prevent HTTP timeouts.
+- **Structured Academic Analysis**: Validates AI responses against strict academic criteria (Clarity, Novelty, Methodology, etc.).
+- **Grounded Q&A**: Ask questions directly against a paper's content, receiving answers with verifiable citations (page/section).
+- **Paper Comparison**: Side-by-side comparative assessment of multiple papers.
+- **AI & Human Reviewing**: Generate automated AI reviewer reports and assign human reviewers to submit manual assessments.
+- **Admin Dashboard**: System-wide monitoring of AI jobs, audit logs, and user roles.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Requirements
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+- **PHP**: 8.2+
+- **Composer**: 2.x
+- **Node.js**: 20+
+- **MySQL**: 8.0+
+- **Redis**: 5.0+
+- **Python**: 3.11+
+- **uv**: Python package manager
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Installation
 
-## Laravel Sponsors
+### 1. Laravel Setup
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```bash
+cp .env.example .env
+composer install
+npm install && npm run build
+php artisan key:generate
+php artisan storage:link
+```
 
-### Premium Partners
+Ensure your `.env` contains the proper MySQL and Redis configuration:
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+```env
+DB_CONNECTION=mysql
+DB_DATABASE=ai_research_paper_analyzer
+DB_USERNAME=root
 
-## Contributing
+QUEUE_CONNECTION=redis
+SESSION_DRIVER=redis
+CACHE_STORE=redis
+REDIS_CLIENT=predis
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Run migrations and seed the system roles:
 
-## Code of Conduct
+```bash
+php artisan migrate:fresh --seed
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 2. FastAPI Setup
 
-## Security Vulnerabilities
+```bash
+cd ai-service
+uv venv
+source .venv/bin/activate # or .venv\Scripts\activate on Windows
+uv pip sync requirements.txt
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Set up your environment variables for the FastAPI service:
+
+```bash
+export GEMINI_API_KEY="your-gemini-key"
+export SERVICE_TOKEN="local-dev-token"
+```
+
+Start the FastAPI server:
+
+```bash
+uvicorn app.main:app --host 127.0.0.1 --port 8001
+```
+
+### 3. Run Queue Workers
+
+```bash
+php artisan queue:work --tries=3 --timeout=120
+```
+
+## Security & Architecture Rules
+
+- The FastAPI service **does not** have direct access to the Laravel MySQL database. All communication goes through authenticated HTTP requests from Laravel.
+- All endpoints are protected by `EnsureUserHasRole` middleware and strict Form Requests.
+- Pydantic models in FastAPI guarantee structured JSON outputs for Laravel to deserialize safely.
+- All destructive actions and AI requests trigger an `AuditLog` entry.
+- File paths are randomized upon upload and mapped securely via `Storage::disk('papers')`.
+
+## Development
+
+Run tests:
+```bash
+php artisan test
+```
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Proprietary

@@ -57,11 +57,11 @@ Route::get('/dashboard', function (\Illuminate\Http\Request $request) {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/papers', [PaperController::class, 'index'])->name('papers.index');
     Route::get('/papers/create', [PaperController::class, 'create'])->name('papers.create');
-    Route::post('/papers', [PaperController::class, 'store'])->name('papers.store');
+    Route::post('/papers', [PaperController::class, 'store'])->name('papers.store')->middleware('throttle:uploads');
     
     // Comparison
     Route::get('/papers/compare', [\App\Http\Controllers\PaperComparisonController::class, 'create'])->name('papers.compare.create');
-    Route::post('/papers/compare', [\App\Http\Controllers\PaperComparisonController::class, 'store'])->name('papers.compare.store');
+    Route::post('/papers/compare', [\App\Http\Controllers\PaperComparisonController::class, 'store'])->name('papers.compare.store')->middleware('throttle:ai_requests');
     Route::get('/papers/compare/{comparison}', [\App\Http\Controllers\PaperComparisonController::class, 'show'])->name('papers.compare.show');
     
     Route::get('/papers/{paper}/edit', [PaperController::class, 'edit'])->name('papers.edit');
@@ -71,10 +71,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/papers/{paper}', [PaperController::class, 'show'])->name('papers.show');
     
     // Q&A
-    Route::post('/papers/{paper}/questions', [\App\Http\Controllers\PaperQuestionController::class, 'store'])->name('papers.questions.store');
+    Route::post('/papers/{paper}/questions', [\App\Http\Controllers\PaperQuestionController::class, 'store'])->name('papers.questions.store')->middleware('throttle:ai_requests');
 
     // Reviews and Assignments
-    Route::post('/papers/{paper}/ai-review', [\App\Http\Controllers\ReviewController::class, 'store'])->name('papers.reviews.store');
+    Route::post('/papers/{paper}/ai-review', [\App\Http\Controllers\ReviewController::class, 'store'])->name('papers.reviews.store')->middleware('throttle:ai_requests');
     Route::patch('/reviews/{review}', [\App\Http\Controllers\ReviewController::class, 'update'])->name('reviews.update');
     Route::post('/papers/{paper}/assign', [\App\Http\Controllers\ReviewerAssignmentController::class, 'store'])->name('papers.assignments.store');
     Route::delete('/papers/{paper}/assign/{reviewer}', [\App\Http\Controllers\ReviewerAssignmentController::class, 'destroy'])->name('papers.assignments.destroy');
