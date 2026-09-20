@@ -137,7 +137,34 @@ class PaperController extends Controller
     {
         Gate::authorize('view', $paper);
 
-        $paper->load('authors');
+        $paper->load([
+            'authors',
+            'analysis',
+            'analysis.scores',
+            'analysis.findings',
+            'references',
+            'questions' => fn ($q) => $q->latest(),
+            'reviews.reviewer',
+        ]);
+
+        // Basic permissions
+        $can = [
+            'download' => Gate::allows('view', $paper),
+            'update' => Gate::allows('update', $paper),
+            'delete' => Gate::allows('delete', $paper),
+            'review' => Gate::allows('review', $paper),
+            'ask' => Gate::allows('askQuestion', $paper), // We'll add this to policy
+        ];
+
+        // Format analysis dynamically (ignoring specific schema fields for generic display)
+        $analysisData = $paper->analysis ? collect($paper->analysis->toArray())
+            ->except(['id', 'paper_id', 'created_at', 'updated_at', 'raw_output', 'citation_analysis', 'ai_suspected_citation_findings'])
+            ->filter()
+            ->all() : null;
+
+        // Extract specific AI Review if there's a system AI reviewer (mocked for now, Workstream 4 will implement)
+        $aiReview = $paper->reviews->firstWhere('reviewer.name', 'AI Reviewer');
+        $humanReviews = $paper->reviews->where('reviewer.name', '!==', 'AI Reviewer')->values();
 
         return Inertia::render('Papers/Show', [
             'paper' => [
@@ -149,6 +176,7 @@ class PaperController extends Controller
                 'doi' => $paper->doi,
                 'keywords' => $paper->keywords,
                 'status' => $paper->status->value,
+                'error_message' => $paper->aiJobs()->latest()->first()?->error_message,
                 'authors' => $paper->authors->map(static fn ($author): array => [
                     'id' => $author->id,
                     'name' => $author->name,
@@ -159,11 +187,14 @@ class PaperController extends Controller
                 'created_at' => $paper->created_at,
                 'updated_at' => $paper->updated_at,
             ],
-            'can' => [
-                'download' => Gate::allows('view', $paper),
-                'update' => Gate::allows('update', $paper),
-                'delete' => Gate::allows('delete', $paper),
-            ],
+            'analysis' => $analysisData,
+            'scores' => $paper->analysis?->scores,
+            'findings' => $paper->analysis?->findings,
+            'references' => $paper->references,
+            'questions' => $paper->questions,
+            'aiReview' => $aiReview,
+            'reviews' => $humanReviews,
+            'can' => $can,
         ]);
     }
 

@@ -49,6 +49,16 @@ class PaperPolicy
         return $this->isResearcherOwner($user, $paper);
     }
 
+    public function review(User $user, Paper $paper): bool
+    {
+        return $this->isAssignedReviewer($user, $paper);
+    }
+
+    public function askQuestion(User $user, Paper $paper): bool
+    {
+        return $this->view($user, $paper);
+    }
+
     private function isResearcherOwner(User $user, Paper $paper): bool
     {
         return $user->hasRole(RoleName::Researcher)

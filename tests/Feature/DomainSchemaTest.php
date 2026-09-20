@@ -78,6 +78,10 @@ class DomainSchemaTest extends TestCase
 
     public function test_scores_must_be_whole_numbers(): void
     {
+        if (DB::connection()->getDriverName() !== 'sqlite') {
+            $this->markTestSkipped('Only SQLite requires triggers to prevent float insertion.');
+        }
+
         $user = User::factory()->create();
         $paper = Paper::create(['title' => 'Test', 'status' => 'UPLOADED', 'uploaded_by' => $user->id, 'file_path' => 'papers/test.pdf']);
         $analysis = $paper->analysis()->create();
@@ -88,6 +92,10 @@ class DomainSchemaTest extends TestCase
 
     public function test_score_updates_must_remain_whole_numbers(): void
     {
+        if (DB::connection()->getDriverName() !== 'sqlite') {
+            $this->markTestSkipped('Only SQLite requires triggers to prevent float insertion.');
+        }
+
         $user = User::factory()->create();
         $paper = Paper::create(['title' => 'Test', 'status' => 'UPLOADED', 'uploaded_by' => $user->id, 'file_path' => 'papers/test.pdf']);
         $analysis = $paper->analysis()->create();
