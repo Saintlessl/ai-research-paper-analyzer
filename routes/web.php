@@ -15,7 +15,42 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
+Route::get('/dashboard', function (\Illuminate\Http\Request $request) {
+    $user = $request->user();
+    
+    // Researchers see their papers
+    if ($user->hasRole('researcher')) {
+        $metrics = [
+            'total_papers' => \App\Models\Paper::where('uploaded_by', $user->id)->count(),
+            'analyzed_papers' => \App\Models\Paper::where('uploaded_by', $user->id)->where('status', 'ANALYZED')->count(),
+        ];
+        $recentPapers = \App\Models\Paper::where('uploaded_by', $user->id)->latest()->take(5)->get();
+        return Inertia::render('Dashboard', [
+            'metrics' => $metrics,
+            'recentPapers' => $recentPapers,
+        ]);
+    }
+    
+    // Reviewers see assigned papers
+    if ($user->hasRole('reviewer')) {
+        $metrics = [
+            'assigned_reviews' => \App\Models\Review::where('reviewer_id', $user->id)->count(),
+            'pending_reviews' => \App\Models\Review::where('reviewer_id', $user->id)->where('status', 'DRAFT')->count(),
+        ];
+        $recentPapers = \App\Models\Paper::whereHas('reviews', function($q) use ($user) {
+            $q->where('reviewer_id', $user->id);
+        })->latest()->take(5)->get();
+        return Inertia::render('Dashboard', [
+            'metrics' => $metrics,
+            'recentPapers' => $recentPapers,
+        ]);
+    }
+
+    // Admins redirect to admin dashboard
+    if ($user->hasRole('admin')) {
+        return redirect()->route('admin.dashboard');
+    }
+
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified', 'role:researcher,reviewer,admin'])->name('dashboard');
 
