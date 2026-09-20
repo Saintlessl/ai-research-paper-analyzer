@@ -45,6 +45,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/papers/{paper}/assign/{reviewer}', [\App\Http\Controllers\ReviewerAssignmentController::class, 'destroy'])->name('papers.assignments.destroy');
 });
 
+Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('dashboard');
+    Route::post('/jobs/{job}/retry', [\App\Http\Controllers\AdminController::class, 'retryJob'])->name('jobs.retry');
+    Route::get('/users', [\App\Http\Controllers\AdminController::class, 'users'])->name('users');
+    Route::get('/logs', [\App\Http\Controllers\AdminController::class, 'logs'])->name('logs');
+});
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
