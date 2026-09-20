@@ -9,6 +9,7 @@ dev = [
     "httpx2>=2.13.0",
     # Starlette 1.6.0 still imports an alias deprecated by AnyIO 4.15.
     "anyio>=4.10,<4.15",
+    "reportlab>=5.0.1",
 ]
 [tool.pytest.ini_options]
 pythonpath = ["."]

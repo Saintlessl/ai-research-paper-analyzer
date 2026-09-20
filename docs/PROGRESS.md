@@ -12,7 +12,7 @@ Legend: `[ ]` Pending · `[~]` In Progress · `[x]` Completed · `[!]` Blocked
 - [x] Paper CRUD and secure PDF upload
 - [x] Queue and AI job tracking
 - [x] FastAPI foundation and internal authentication
-- [ ] PDF extraction, section detection, and chunking
+- [x] PDF extraction, text cleaning, page-preserving section detection, and configurable section-aware chunking
 - [ ] Gemini structured-output integration and repair
 - [ ] Structured analysis, scoring, findings, evidence mapping
 - [ ] Citation and reference analysis

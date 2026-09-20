@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from pydantic import Field, SecretStr, field_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -10,6 +10,13 @@ class Settings(BaseSettings):
     gemini_model: str = "gemini-2.5-flash"
     repair_attempts: int = Field(default=1, ge=0, le=5)
     chunk_size: int = Field(default=6000, gt=0)
+    chunk_overlap: int = Field(default=300, ge=0)
+
+    @model_validator(mode="after")
+    def validate_chunking(self) -> "Settings":
+        if self.chunk_overlap >= self.chunk_size:
+            raise ValueError("chunk_overlap must be less than chunk_size")
+        return self
 
     model_config = SettingsConfigDict(env_prefix="FASTAPI_", extra="ignore")
 

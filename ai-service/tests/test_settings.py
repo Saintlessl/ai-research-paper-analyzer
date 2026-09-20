@@ -14,3 +14,5 @@ def test_numeric_settings_reject_invalid_ranges():
         Settings(internal_token='token', repair_attempts=-1)
     with pytest.raises(ValidationError):
         Settings(internal_token='token', chunk_size=0)
+    with pytest.raises(ValidationError):
+        Settings(internal_token='token', chunk_size=20, chunk_overlap=20)
