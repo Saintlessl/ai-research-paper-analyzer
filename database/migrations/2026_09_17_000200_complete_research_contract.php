@@ -203,7 +203,9 @@ return new class extends Migration
         match (DB::connection()->getDriverName()) {
             'sqlite' => $this->dropSqliteScoreTriggers(),
             'mysql' => DB::statement(sprintf(
-                'ALTER TABLE paper_scores DROP CHECK %s',
+                str_contains(strtolower((string) DB::selectOne('SELECT VERSION() AS version')->version), 'mariadb')
+                    ? 'ALTER TABLE paper_scores DROP CONSTRAINT %s'
+                    : 'ALTER TABLE paper_scores DROP CHECK %s',
                 self::SCORE_CONSTRAINT,
             )),
             'pgsql' => DB::statement(sprintf(
