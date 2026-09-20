@@ -53,3 +53,36 @@ def test_schema_rejects_unexplained_or_out_of_range_scores():
     try: parse_validated(json.dumps(payload), AnalysisData)
     except ValueError: pass
     else: raise AssertionError('invalid score accepted')
+
+def test_api_validation_errors_use_contract_and_request_id_header():
+    response = client.post(
+        '/api/v1/analyze',
+        headers=HEADERS | {'X-Request-ID': 'trace-123'},
+        json={},
+    )
+    assert response.status_code == 422
+    assert response.headers['X-Request-ID'] == 'trace-123'
+    assert response.json() == {
+        'success': False,
+        'request_id': 'trace-123',
+        'error': {'code': 'VALIDATION_ERROR', 'message': 'Request validation failed'},
+    }
+
+def test_request_id_is_generated_when_header_is_absent():
+    response = client.get('/health')
+    assert response.headers['X-Request-ID']
+
+def test_provider_errors_are_generic_and_do_not_leak_details(fake_provider):
+    fake_provider.responses.extend([RuntimeError('secret upstream detail')] * 2)
+    response = request('analyze', {"request_id":"123e4567-e89b-12d3-a456-426614174000","paper_id":1,"text":"x","metadata":{"title":"x","authors":[]}})
+    assert response.status_code == 502
+    assert response.json()['error'] == {
+        'code': 'AI_PROCESSING_FAILED',
+        'message': 'Unable to process request',
+    }
+
+def test_every_versioned_route_requires_auth_before_validation():
+    for route in ('analyze', 'review', 'qa', 'compare'):
+        response = client.post(f'/api/v1/{route}', json={})
+        assert response.status_code == 401
+        assert response.json()['error']['code'] == 'UNAUTHORIZED'

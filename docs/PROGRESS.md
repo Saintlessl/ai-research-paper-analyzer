@@ -11,7 +11,7 @@ Legend: `[ ]` Pending · `[~]` In Progress · `[x]` Completed · `[!]` Blocked
 - [x] Authentication and normalized RBAC with middleware and policies
 - [x] Paper CRUD and secure PDF upload
 - [x] Queue and AI job tracking
-- [ ] FastAPI foundation and internal authentication
+- [x] FastAPI foundation and internal authentication
 - [ ] PDF extraction, section detection, and chunking
 - [ ] Gemini structured-output integration and repair
 - [ ] Structured analysis, scoring, findings, evidence mapping
