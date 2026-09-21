@@ -1,19 +1,205 @@
-import ApplicationLogo from '@/Components/ApplicationLogo';
-import { initials, normalizeRole } from '@/lib/contracts';
-import type { AuthenticatedPageProps, Capabilities } from '@/types';
+import React, { PropsWithChildren, ReactNode, useState, useEffect } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { Bell, BookOpen, ChevronDown, LayoutDashboard, LogOut, Menu, Upload, UserRound, X } from 'lucide-react';
-import { PropsWithChildren, ReactNode, useState } from 'react';
+import { LayoutDashboard, BookOpen, Upload, Users, ClipboardList, Activity, ChevronLeft, ChevronRight, UserRound, LogOut } from 'lucide-react';
+import ApplicationLogo from '@/Components/ApplicationLogo';
+import { AuthenticatedPageProps } from '@/types';
+import { normalizeRole } from '@/lib/contracts';
+import { cn } from '@/Components/ui/utils';
+import { NeuAvatar } from '@/Components/ui/NeuData';
+import { NeuSearch } from '@/Components/ui/NeuForm';
+import { NeuDropdown, NeuIconButton } from '@/Components/ui/NeuNavigation';
+import { ThemeToggle } from '@/Components/ui/ThemeToggle';
+import { NeuCard } from '@/Components/ui/NeuCard';
 
-const activePath = (href:string) => window.location.pathname === href || (href !== '/dashboard' && window.location.pathname.startsWith(`${href}/`));
+const activePath = (href: string) => window.location.pathname === href || (href !== '/dashboard' && window.location.pathname.startsWith(`${href}/`));
+
 export default function Authenticated({ header, children }: PropsWithChildren<{ header?: ReactNode }>) {
- const { auth, flash } = usePage<AuthenticatedPageProps>().props; const user = auth.user; const role = normalizeRole(user); const [mobile,setMobile]=useState(false); const [account,setAccount]=useState(false);
- return <div className="min-h-screen bg-slate-50"><a href="#main-content" className="fixed left-3 top-3 z-[60] -translate-y-20 rounded-lg bg-white px-4 py-2 text-sm font-semibold shadow focus:translate-y-0">Skip to content</a>
- <aside className="fixed inset-y-0 left-0 z-50 hidden w-64 flex-col border-r border-slate-200 bg-slate-950 text-white lg:flex"><Brand/><Sidebar capabilities={auth.capabilities}/><div className="border-t border-slate-800 p-4"><p className="text-xs text-slate-500">Signed in as</p><p className="mt-1 truncate text-sm font-semibold">{user.name}</p><p className="truncate text-xs text-slate-400">{user.email}</p></div></aside>
- {mobile && <div className="fixed inset-0 z-50 lg:hidden"><button aria-label="Close navigation" className="absolute inset-0 bg-slate-950/50" onClick={()=>setMobile(false)}/><aside className="relative flex h-full w-[min(19rem,86vw)] flex-col bg-slate-950 text-white shadow-xl"><div className="flex items-center justify-between"><Brand/><button className="mr-3 rounded-lg p-2" onClick={()=>setMobile(false)}><X/></button></div><Sidebar capabilities={auth.capabilities}/></aside></div>}
- <div className="min-w-0 lg:pl-64"><header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-6 lg:px-8"><div className="flex items-center gap-3"><button aria-label="Open navigation" className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 lg:hidden" onClick={()=>setMobile(true)}><Menu/></button><div className="hidden sm:block"><p className="text-sm font-semibold text-slate-900">Research workspace</p><p className="text-xs capitalize text-slate-500">{role} access</p></div></div><div className="flex items-center gap-2"><button aria-label="Notifications" className="rounded-xl p-2.5 text-slate-500 hover:bg-slate-100"><Bell className="h-5 w-5"/></button><div className="relative"><button aria-expanded={account} onClick={()=>setAccount(!account)} className="flex min-h-11 items-center gap-2 rounded-xl p-1.5 hover:bg-slate-100"><span className="grid h-8 w-8 place-items-center rounded-lg bg-teal-100 text-xs font-bold text-teal-800">{initials(user.name)}</span><span className="hidden max-w-32 truncate text-sm font-semibold sm:block">{user.name}</span><ChevronDown className="h-4 w-4 text-slate-400"/></button>{account && <div className="absolute right-0 mt-2 w-52 rounded-xl border border-slate-200 bg-white p-2 shadow-xl"><Link href="/profile" className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-slate-50"><UserRound className="h-4 w-4"/>Profile</Link><Link href="/logout" method="post" as="button" className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-rose-700 hover:bg-rose-50"><LogOut className="h-4 w-4"/>Log out</Link></div>}</div></div></header>
- {flash?.success && <div role="status" className="mx-4 mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 sm:mx-6 lg:mx-8">{flash.success}</div>}{flash?.error && <div role="alert" className="mx-4 mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 sm:mx-6 lg:mx-8">{flash.error}</div>}
- {header && <div className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6 lg:px-8">{header}</div>}<main id="main-content" className="min-w-0">{children}</main></div></div>;
+  const { auth, flash } = usePage<AuthenticatedPageProps>().props;
+  const user = auth.user;
+  const role = normalizeRole(user);
+  
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Load sidebar state
+  useEffect(() => {
+    const saved = localStorage.getItem('sidebar-collapsed');
+    if (saved) setIsCollapsed(saved === 'true');
+    
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const toggleSidebar = () => {
+    const next = !isCollapsed;
+    setIsCollapsed(next);
+    localStorage.setItem('sidebar-collapsed', String(next));
+  };
+
+  const menuItems = [
+    { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['admin', 'researcher', 'reviewer'] },
+    { label: 'Papers', href: '/papers', icon: BookOpen, roles: ['admin', 'researcher'] },
+    { label: 'Upload Paper', href: '/papers/create', icon: Upload, roles: ['researcher'] },
+    { label: 'Assigned Reviews', href: '/reviews', icon: ClipboardList, roles: ['reviewer'] },
+    { label: 'Users', href: '/admin/users', icon: Users, roles: ['admin'] },
+  ].filter(item => item.roles.includes(role as string));
+
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+
+  return (
+    <div className="min-h-screen bg-neu-bg text-neu-text transition-colors">
+      <a href="#main-content" className="fixed left-3 top-3 z-[60] -translate-y-20 rounded-neu-md bg-neu-surface px-4 py-2 text-sm font-semibold shadow focus:translate-y-0 focus:ring-2 focus:ring-neu-accent-fill">
+        Skip to content
+      </a>
+
+      {/* Topbar */}
+      <header className={cn(
+        "fixed top-0 right-0 z-40 flex h-16 items-center justify-between border-b border-neu-hairline bg-neu-bg/80 px-4 backdrop-blur-md transition-all",
+        !isMobile ? (isCollapsed ? "left-[80px]" : "left-[260px]") : "left-0"
+      )}>
+        <div className="flex items-center gap-4 flex-1">
+          {/* Global Search */}
+          <div className="hidden sm:block w-full max-w-md">
+            <NeuSearch placeholder="Search papers, authors..." />
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          {/* AI Jobs Indicator */}
+          <button className="relative flex items-center justify-center w-10 h-10 rounded-full bg-neu-surface neu-raised-sm text-neu-muted hover:text-neu-accent-text transition-colors" title="Active AI Jobs">
+            <Activity className="h-5 w-5" />
+            <span className="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-neu-accent-fill text-[9px] font-bold text-neu-accent-on">3</span>
+          </button>
+          
+          <ThemeToggle />
+          
+          {/* User Profile */}
+          <NeuDropdown
+            isOpen={userMenuOpen}
+            setIsOpen={setUserMenuOpen}
+            trigger={
+              <button className="flex items-center gap-2 rounded-full hover:opacity-80 transition-opacity">
+                <NeuAvatar name={user.name} size="md" />
+              </button>
+            }
+          >
+            <div className="px-4 py-3 border-b border-neu-hairline">
+              <p className="text-sm font-bold truncate">{user.name}</p>
+              <p className="text-xs text-neu-muted truncate">{user.email}</p>
+              <p className="text-[10px] uppercase font-bold text-neu-accent-text mt-1 tracking-wider">{role}</p>
+            </div>
+            <div className="p-1">
+              <Link href="/profile" className="flex items-center gap-2 rounded-neu-sm px-3 py-2 text-sm hover:bg-neu-surface hover:text-neu-accent-text transition-colors">
+                <UserRound className="h-4 w-4" /> Profile
+              </Link>
+              <Link href="/logout" method="post" as="button" className="flex w-full items-center gap-2 rounded-neu-sm px-3 py-2 text-sm text-status-failed-text hover:bg-status-failed-fill/10 transition-colors">
+                <LogOut className="h-4 w-4" /> Log out
+              </Link>
+            </div>
+          </NeuDropdown>
+        </div>
+      </header>
+
+      {/* Desktop Sidebar */}
+      {!isMobile && (
+        <aside className={cn(
+          "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-neu-hairline bg-neu-surface transition-all duration-300",
+          isCollapsed ? "w-[80px]" : "w-[260px]"
+        )}>
+          <div className="flex h-16 items-center justify-between px-4 border-b border-transparent">
+            <Link href="/dashboard" className="flex items-center gap-3 overflow-hidden whitespace-nowrap pt-1 pl-1">
+              <ApplicationLogo className="h-8 w-8 text-neu-accent-fill shrink-0" />
+              {!isCollapsed && <span className="font-bold tracking-tight text-lg">ScholarLens</span>}
+            </Link>
+          </div>
+          
+          <nav className="flex-1 space-y-2 p-3 overflow-y-auto mt-4">
+            {menuItems.map(({ label, href, icon: Icon }) => {
+              const active = activePath(href);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  title={isCollapsed ? label : undefined}
+                  className={cn(
+                    "relative flex items-center gap-3 rounded-neu-md px-3 py-3 transition-all",
+                    active 
+                      ? "neu-pressed text-neu-accent-text font-bold" 
+                      : "text-neu-muted hover:neu-raised-sm hover:text-neu-text",
+                    isCollapsed && "justify-center px-0"
+                  )}
+                >
+                  {active && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-neu-accent-fill rounded-r-full" />}
+                  <Icon className={cn("shrink-0", isCollapsed ? "h-6 w-6" : "h-5 w-5")} />
+                  {!isCollapsed && <span className="whitespace-nowrap">{label}</span>}
+                </Link>
+              );
+            })}
+          </nav>
+          
+          <div className="p-3 border-t border-neu-hairline flex justify-center">
+            <NeuIconButton 
+              icon={isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />} 
+              onClick={toggleSidebar}
+              variant="ghost"
+              aria-label="Toggle Sidebar"
+            />
+          </div>
+        </aside>
+      )}
+
+      {/* Mobile Bottom Navigation */}
+      {isMobile && (
+        <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center justify-around border-t border-neu-hairline bg-neu-surface/90 backdrop-blur-md pb-safe">
+          {menuItems.map(({ label, href, icon: Icon }) => {
+            const active = activePath(href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={cn(
+                  "flex flex-col items-center justify-center w-full h-full gap-1",
+                  active ? "text-neu-accent-text" : "text-neu-muted hover:text-neu-text"
+                )}
+              >
+                <div className={cn("p-1 rounded-full transition-all", active && "neu-pressed bg-neu-bg")}>
+                  <Icon className="h-5 w-5" />
+                </div>
+                <span className="text-[10px] font-medium truncate w-full text-center px-1">{label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      )}
+
+      {/* Main Content */}
+      <div className={cn(
+        "min-w-0 transition-all duration-300 flex flex-col min-h-screen pt-16",
+        !isMobile ? (isCollapsed ? "pl-[80px]" : "pl-[260px]") : "pb-16"
+      )}>
+        {flash?.success && (
+          <div className="mx-4 mt-4 sm:mx-6 lg:mx-8">
+            <NeuCard className="border-l-4 border-l-status-analyzed-fill bg-status-analyzed-fill/5" padding="sm" elevation="flat">
+              <p className="text-sm text-status-analyzed-text font-medium">{flash.success}</p>
+            </NeuCard>
+          </div>
+        )}
+        {flash?.error && (
+          <div className="mx-4 mt-4 sm:mx-6 lg:mx-8">
+            <NeuCard className="border-l-4 border-l-status-failed-fill bg-status-failed-fill/5" padding="sm" elevation="flat">
+              <p className="text-sm text-status-failed-text font-medium">{flash.error}</p>
+            </NeuCard>
+          </div>
+        )}
+        
+        {header && <div className="border-b border-neu-hairline bg-neu-surface px-4 py-4 sm:px-6 lg:px-8">{header}</div>}
+        
+        <main id="main-content" className="flex-1 p-4 sm:p-6 lg:p-8">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
 }
-function Brand(){return <Link href="/dashboard" className="flex h-20 items-center gap-3 px-5"><span className="rounded-xl bg-teal-500 p-2 text-slate-950"><ApplicationLogo className="h-6 w-6"/></span><span><strong className="block text-sm tracking-wide">ScholarLens</strong><span className="text-xs text-slate-400">AI paper analysis</span></span></Link>}
-function Sidebar({capabilities}:{capabilities:Capabilities}){const links=[{label:'Dashboard',href:'/dashboard',icon:LayoutDashboard},{label:'Papers',href:'/papers',icon:BookOpen},...(capabilities.upload_papers?[{label:'Upload paper',href:'/papers/create',icon:Upload}]:[])];return <nav aria-label="Primary" className="flex-1 space-y-1 overflow-y-auto px-3 py-3">{links.map(({label,href,icon:Icon})=><Link key={href} href={href} className={`flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium transition ${activePath(href)?'bg-teal-500 text-slate-950':'text-slate-300 hover:bg-slate-900 hover:text-white'}`}><Icon className="h-5 w-5"/><span>{label}</span></Link>)}</nav>}

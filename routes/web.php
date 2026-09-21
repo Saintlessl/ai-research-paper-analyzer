@@ -18,6 +18,13 @@ Route::get('/', function () {
 Route::get('/dashboard', function (\Illuminate\Http\Request $request) {
     $user = $request->user();
     
+    // Simulate error for testing
+    if ($request->query('simulate_error')) {
+        return Inertia::render('Dashboard', [
+            'error' => 'Database connection failed while retrieving research metrics. (Simulated Error)'
+        ]);
+    }
+
     // Researchers see their papers
     if ($user->hasRole('researcher')) {
         $metrics = [
@@ -98,3 +105,9 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+if (app()->environment('local')) {
+    Route::get('/design-system', function () {
+        return Inertia\Inertia::render('DesignSystem');
+    });
+}

@@ -1,17 +1,17 @@
 import { InputHTMLAttributes } from 'react';
+import { NeuCheckbox } from '@/Components/ui/NeuForm';
 
+/**
+ * @deprecated Use NeuCheckbox instead.
+ */
 export default function Checkbox({
     className = '',
     ...props
 }: InputHTMLAttributes<HTMLInputElement>) {
     return (
-        <input
+        <NeuCheckbox
             {...props}
-            type="checkbox"
-            className={
-                'rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500 ' +
-                className
-            }
+            className={className}
         />
     );
 }

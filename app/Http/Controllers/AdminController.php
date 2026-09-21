@@ -16,8 +16,14 @@ use App\Jobs\ProcessPaper;
 
 class AdminController extends Controller
 {
-    public function dashboard(): Response
+    public function dashboard(Request $request): Response
     {
+        if ($request->query('simulate_error')) {
+            return Inertia::render('Admin/Dashboard', [
+                'error' => 'Redis cache unavailable: Unable to load system metrics. (Simulated Error)'
+            ]);
+        }
+
         $totalJobs = AiJob::count();
         $completedJobs = AiJob::where('status', 'COMPLETED')->count();
 

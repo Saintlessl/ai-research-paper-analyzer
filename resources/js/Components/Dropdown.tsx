@@ -19,6 +19,9 @@ const DropDownContext = createContext<{
     toggleOpen: () => {},
 });
 
+/**
+ * @deprecated Use NeuDropdown instead.
+ */
 const Dropdown = ({ children }: PropsWithChildren) => {
     const [open, setOpen] = useState(false);
 

@@ -1,5 +1,8 @@
 import { HTMLAttributes } from 'react';
 
+/**
+ * @deprecated Use standard error text or incorporate into Neu components.
+ */
 export default function InputError({
     message,
     className = '',
@@ -8,7 +11,7 @@ export default function InputError({
     return message ? (
         <p
             {...props}
-            className={'text-sm text-red-600 ' + className}
+            className={'text-sm text-status-failed-text ' + className}
         >
             {message}
         </p>

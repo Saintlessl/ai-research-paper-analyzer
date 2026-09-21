@@ -1,41 +1,24 @@
-import {
-    forwardRef,
-    InputHTMLAttributes,
-    useEffect,
-    useImperativeHandle,
-    useRef,
-} from 'react';
+import { forwardRef, InputHTMLAttributes } from 'react';
 
-export default forwardRef(function TextInput(
-    {
-        type = 'text',
-        className = '',
-        isFocused = false,
-        ...props
-    }: InputHTMLAttributes<HTMLInputElement> & { isFocused?: boolean },
+import { NeuInput } from '@/Components/ui/NeuInput';
+
+/**
+ * @deprecated Use NeuInput instead.
+ */
+export default forwardRef<
+    HTMLInputElement,
+    InputHTMLAttributes<HTMLInputElement> & { isFocused?: boolean }
+>(function TextInput(
+    { type = 'text', className = '', isFocused = false, ...props },
     ref,
 ) {
-    const localRef = useRef<HTMLInputElement>(null);
-
-    useImperativeHandle(ref, () => ({
-        focus: () => localRef.current?.focus(),
-    }));
-
-    useEffect(() => {
-        if (isFocused) {
-            localRef.current?.focus();
-        }
-    }, [isFocused]);
-
     return (
-        <input
+        <NeuInput
             {...props}
             type={type}
-            className={
-                'rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 ' +
-                className
-            }
-            ref={localRef}
+            className={className}
+            ref={ref}
+            autoFocus={isFocused}
         />
     );
 });

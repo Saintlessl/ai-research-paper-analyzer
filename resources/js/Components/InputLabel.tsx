@@ -1,5 +1,8 @@
 import { LabelHTMLAttributes } from 'react';
 
+/**
+ * @deprecated Use standard <label> or incorporate into Neu components.
+ */
 export default function InputLabel({
     value,
     className = '',
@@ -9,10 +12,7 @@ export default function InputLabel({
     return (
         <label
             {...props}
-            className={
-                `block text-sm font-medium text-gray-700 ` +
-                className
-            }
+            className={`block font-medium text-sm text-neu-text ` + className}
         >
             {value ? value : children}
         </label>

@@ -155,6 +155,7 @@ class PaperController extends Controller
             'delete' => Gate::allows('delete', $paper),
             'review' => Gate::allows('review', $paper),
             'ask' => Gate::allows('askQuestion', $paper), // We'll add this to policy
+            'retry' => $request->user()->hasRole(\App\Enums\RoleName::Admin->value),
         ];
 
         // Format analysis dynamically (ignoring specific schema fields for generic display)
@@ -170,6 +171,8 @@ class PaperController extends Controller
         $reviewers = $request->user()->hasRole('admin') 
             ? \App\Models\User::whereHas('roles', fn($q) => $q->where('name', \App\Enums\RoleName::Reviewer->value))->get(['id', 'name'])
             : [];
+            
+        $latestJob = $paper->aiJobs()->latest()->first();
 
         return Inertia::render('Papers/Show', [
             'paper' => [
@@ -181,7 +184,8 @@ class PaperController extends Controller
                 'doi' => $paper->doi,
                 'keywords' => $paper->keywords,
                 'status' => $paper->status->value,
-                'error_message' => $paper->aiJobs()->latest()->first()?->error_message,
+                'error_message' => $latestJob?->error_message,
+                'failed_job_id' => $latestJob?->status->value === 'FAILED' ? $latestJob->id : null,
                 'authors' => $paper->authors->map(static fn ($author): array => [
                     'id' => $author->id,
                     'name' => $author->name,
