@@ -2,26 +2,34 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\RoleName;
 use App\Models\AiJob;
 use App\Models\AuditLog;
 use App\Models\Paper;
+use App\Models\PaperScore;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Support\Facades\DB;
 use App\Jobs\ProcessPaper;
 
 class AdminController extends Controller
 {
     public function dashboard(): Response
     {
+        $totalJobs = AiJob::count();
+        $completedJobs = AiJob::where('status', 'COMPLETED')->count();
+
         $metrics = [
             'total_papers' => Paper::count(),
+            'analyzed_papers' => Paper::where('status', 'ANALYZED')->count(),
+            'processing_papers' => Paper::where('status', 'PROCESSING')->count(),
             'total_users' => User::count(),
             'failed_jobs' => AiJob::where('status', 'FAILED')->count(),
             'pending_jobs' => AiJob::whereIn('status', ['PENDING', 'PROCESSING'])->count(),
+            'average_score' => round((float) PaperScore::avg('score'), 1),
+            'ai_success_rate' => $totalJobs > 0 ? round(($completedJobs / $totalJobs) * 100, 1) : 0,
         ];
 
         $recentJobs = AiJob::with('user')->latest()->take(10)->get();
@@ -56,7 +64,20 @@ class AdminController extends Controller
     {
         return Inertia::render('Admin/Users', [
             'users' => User::with('roles')->latest()->paginate(20),
+            'availableRoles' => collect(RoleName::cases())->map(fn ($r) => $r->value)->toArray(),
         ]);
+    }
+
+    public function updateUserRole(Request $request, User $user): RedirectResponse
+    {
+        $request->validate([
+            'role' => 'required|string|in:' . implode(',', array_map(fn ($r) => $r->value, RoleName::cases())),
+        ]);
+
+        $role = \App\Models\Role::where('name', $request->role)->firstOrFail();
+        $user->roles()->sync([$role->id]);
+
+        return back()->with('status', 'role-updated');
     }
 
     public function logs(): Response

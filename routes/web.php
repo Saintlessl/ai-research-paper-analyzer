@@ -52,9 +52,9 @@ Route::get('/dashboard', function (\Illuminate\Http\Request $request) {
     }
 
     return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified', 'role:researcher,reviewer,admin'])->name('dashboard');
+})->middleware(['auth', 'role:researcher,reviewer,admin'])->name('dashboard');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::get('/papers', [PaperController::class, 'index'])->name('papers.index');
     Route::get('/papers/create', [PaperController::class, 'create'])->name('papers.create');
     Route::post('/papers', [PaperController::class, 'store'])->name('papers.store')->middleware('throttle:uploads');
@@ -79,12 +79,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/papers/{paper}/assign', [\App\Http\Controllers\ReviewerAssignmentController::class, 'store'])->name('papers.assignments.store');
     Route::delete('/papers/{paper}/assign/{reviewer}', [\App\Http\Controllers\ReviewerAssignmentController::class, 'destroy'])->name('papers.assignments.destroy');
     Route::get('/papers/{paper}/recommendations', [\App\Http\Controllers\ReviewerRecommendationController::class, 'show'])->name('papers.recommendations');
+    Route::post('/reviews/{review}/comments', [\App\Http\Controllers\ReviewCommentController::class, 'store'])->name('reviews.comments.store');
+    Route::get('/papers/{paper}/export', [\App\Http\Controllers\ExportController::class, 'show'])->name('papers.export');
 });
 
-Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('dashboard');
     Route::post('/jobs/{job}/retry', [\App\Http\Controllers\AdminController::class, 'retryJob'])->name('jobs.retry');
     Route::get('/users', [\App\Http\Controllers\AdminController::class, 'users'])->name('users');
+    Route::patch('/users/{user}/role', [\App\Http\Controllers\AdminController::class, 'updateUserRole'])->name('users.updateRole');
     Route::get('/logs', [\App\Http\Controllers\AdminController::class, 'logs'])->name('logs');
 });
 

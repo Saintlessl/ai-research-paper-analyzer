@@ -19,6 +19,14 @@ export default function Dashboard({ metrics, recentJobs, recentLogs }: any) {
                         <h3 className="text-sm font-semibold text-teal-900">Total Papers</h3>
                         <p className="mt-2 text-3xl font-bold text-teal-700">{metrics.total_papers}</p>
                     </Card>
+                    <Card className="p-5 bg-green-50">
+                        <h3 className="text-sm font-semibold text-green-900">Analyzed</h3>
+                        <p className="mt-2 text-3xl font-bold text-green-700">{metrics.analyzed_papers}</p>
+                    </Card>
+                    <Card className="p-5 bg-yellow-50">
+                        <h3 className="text-sm font-semibold text-yellow-900">Processing</h3>
+                        <p className="mt-2 text-3xl font-bold text-yellow-700">{metrics.processing_papers}</p>
+                    </Card>
                     <Card className="p-5 bg-blue-50">
                         <h3 className="text-sm font-semibold text-blue-900">Total Users</h3>
                         <p className="mt-2 text-3xl font-bold text-blue-700">{metrics.total_users}</p>
@@ -30,6 +38,14 @@ export default function Dashboard({ metrics, recentJobs, recentLogs }: any) {
                     <Card className="p-5 bg-amber-50">
                         <h3 className="text-sm font-semibold text-amber-900">Pending Jobs</h3>
                         <p className="mt-2 text-3xl font-bold text-amber-700">{metrics.pending_jobs}</p>
+                    </Card>
+                    <Card className="p-5 bg-purple-50">
+                        <h3 className="text-sm font-semibold text-purple-900">Average Score</h3>
+                        <p className="mt-2 text-3xl font-bold text-purple-700">{metrics.average_score ?? '—'}</p>
+                    </Card>
+                    <Card className="p-5 bg-indigo-50">
+                        <h3 className="text-sm font-semibold text-indigo-900">AI Success Rate</h3>
+                        <p className="mt-2 text-3xl font-bold text-indigo-700">{metrics.ai_success_rate}%</p>
                     </Card>
                 </div>
 

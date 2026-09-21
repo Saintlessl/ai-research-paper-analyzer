@@ -2,6 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Enums\RoleName;
+use App\Models\Role;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -13,19 +16,19 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(RoleSeeder::class);
 
-        $adminRole = \App\Models\Role::where('name', 'ADMIN')->first();
-        $researcherRole = \App\Models\Role::where('name', 'RESEARCHER')->first();
-        $reviewerRole = \App\Models\Role::where('name', 'REVIEWER')->first();
+        $adminRole = Role::where('name', RoleName::Admin->value)->first();
+        $researcherRole = Role::where('name', RoleName::Researcher->value)->first();
+        $reviewerRole = Role::where('name', RoleName::Reviewer->value)->first();
 
-        $admin = \App\Models\User::firstOrCreate(
+        $admin = User::firstOrCreate(
             ['email' => 'admin@example.com'],
-            ['name' => 'Admin User', 'password' => bcrypt('password')]
+            ['name' => 'Admin User', 'password' => bcrypt('password'), 'email_verified_at' => now()]
         );
         $admin->roles()->syncWithoutDetaching([$adminRole->id]);
 
-        $researcher = \App\Models\User::firstOrCreate(
+        $researcher = User::firstOrCreate(
             ['email' => 'researcher@example.com'],
-            ['name' => 'Dr. Researcher', 'password' => bcrypt('password')]
+            ['name' => 'Dr. Researcher', 'password' => bcrypt('password'), 'email_verified_at' => now()]
         );
         $researcher->roles()->syncWithoutDetaching([$researcherRole->id]);
 
@@ -37,11 +40,10 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($reviewers as $r) {
-            $user = \App\Models\User::firstOrCreate(
+            $user = User::firstOrCreate(
                 ['email' => $r['email']],
-                ['name' => $r['name'], 'password' => bcrypt('password'), 'expertise' => $r['expertise']]
+                ['name' => $r['name'], 'password' => bcrypt('password'), 'expertise' => $r['expertise'], 'email_verified_at' => now()]
             );
-            // Also update expertise if it already existed but was null
             if ($user->expertise !== $r['expertise']) {
                 $user->update(['expertise' => $r['expertise']]);
             }

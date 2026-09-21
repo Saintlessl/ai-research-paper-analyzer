@@ -145,6 +145,7 @@ class PaperController extends Controller
             'references',
             'questions' => fn ($q) => $q->latest(),
             'reviews.reviewer',
+            'reviews.comments.user',
         ]);
 
         // Basic permissions
@@ -167,7 +168,7 @@ class PaperController extends Controller
         $humanReviews = $paper->reviews->where('reviewer.name', '!==', 'AI Reviewer')->values();
 
         $reviewers = $request->user()->hasRole('admin') 
-            ? \App\Models\User::whereHas('roles', fn($q) => $q->where('name', 'REVIEWER'))->get(['id', 'name'])
+            ? \App\Models\User::whereHas('roles', fn($q) => $q->where('name', \App\Enums\RoleName::Reviewer->value))->get(['id', 'name'])
             : [];
 
         return Inertia::render('Papers/Show', [

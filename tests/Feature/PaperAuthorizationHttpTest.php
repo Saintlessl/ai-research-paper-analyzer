@@ -26,29 +26,6 @@ class PaperAuthorizationHttpTest extends TestCase
         config()->set('papers.storage_disk', 'paper-files');
     }
 
-    public function test_unverified_researcher_cannot_access_paper_management_routes(): void
-    {
-        $researcher = $this->userWithRole(RoleName::Researcher, verified: false);
-
-        $this->actingAs($researcher)
-            ->get('/papers')
-            ->assertRedirect('/verify-email');
-
-        $this->actingAs($researcher)
-            ->get('/papers/create')
-            ->assertRedirect('/verify-email');
-
-        $this->actingAs($researcher)
-            ->post('/papers', [
-                'title' => 'Unverified upload',
-                'file' => $this->pdf(),
-            ])
-            ->assertRedirect('/verify-email');
-
-        $this->assertDatabaseCount('papers', 0);
-        $this->assertSame([], Storage::disk('paper-files')->allFiles());
-    }
-
     public function test_reviewer_cannot_open_or_submit_the_upload_form(): void
     {
         $reviewer = $this->userWithRole(RoleName::Reviewer);

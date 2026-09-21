@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\RoleName;
 use App\Models\Paper;
 use App\Models\User;
 use App\Services\RecommendationHttpClient;
@@ -13,7 +14,7 @@ class ReviewerRecommendationController extends Controller
 {
     public function show(Request $request, Paper $paper, RecommendationHttpClient $client): JsonResponse
     {
-        if (! $request->user()->hasRole('admin')) {
+        if (! $request->user()->hasRole(RoleName::Admin)) {
             abort(403);
         }
 
@@ -23,7 +24,7 @@ class ReviewerRecommendationController extends Controller
         $keywords = $paper->analysis ? ($paper->analysis['keywords'] ?? []) : [];
 
         // Fetch eligible reviewers
-        $reviewers = User::whereHas('roles', fn($q) => $q->where('name', 'REVIEWER'))
+        $reviewers = User::whereHas('roles', fn($q) => $q->where('name', RoleName::Reviewer->value))
             ->get(['id', 'name', 'expertise'])
             ->map(fn($r) => [
                 'id' => $r->id,
