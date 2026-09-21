@@ -371,7 +371,14 @@ function Qa(p: Props) {
                         <Send className="h-4 w-4 mr-2" /> Ask AI
                     </NeuButton>
                     
-                    {f.errors.question && <p className="mt-2 text-sm text-status-failed-text">{f.errors.question}</p>}
+                    {(f.errors as any).qa === 'PAPER_NOT_READY' ? (
+                        <div className="mt-4 p-4 rounded-neu-sm bg-neu-surface neu-pressed border border-neu-accent-fill/30 text-neu-muted flex items-center text-sm">
+                            <div className="animate-spin mr-3 w-4 h-4 border-2 border-neu-accent-fill border-t-transparent rounded-full" />
+                            Document is being analyzed. Please wait...
+                        </div>
+                    ) : f.errors.question ? (
+                        <p className="mt-2 text-sm text-status-failed-text">{f.errors.question}</p>
+                    ) : null}
                 </form>
             </NeuCard>
 

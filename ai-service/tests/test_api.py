@@ -23,6 +23,7 @@ def analysis_payload():
     evidence = [{"page": 1, "section": "Methods", "chunk_id": "chunk-0001", "excerpt": "A study.", "confidence": .9}]
     criteria = ["clarity", "methodological_rigor", "novelty", "validity", "reproducibility", "significance", "evidence_quality"]
     return {
+        "thought_process": "thinking",
         "classification": {"paper_type": "Experimental", "research_domain": "Computer Science", "reason": "Experiment", "evidence": evidence},
         "structure": {"summary": "Standard", "sections": [], "evidence": evidence},
         "methodology": {"research_problem": None, "research_questions": None, "research_objective": None, "hypothesis": None, "study_design": None, "methods": None, "dataset": None, "sample_size": None, "evidence": []},
@@ -63,9 +64,9 @@ def test_analyze_pdf_rejects_malformed_pdf_without_calling_provider(fake_provide
 
 def test_review_qa_compare_contracts(fake_provider):
     fake_provider.responses.extend([
-      json.dumps({"summary":"s","strengths":[],"major_concerns":[],"minor_concerns":[],"methodology_review":"m","novelty_review":"n","results_review":"r","reproducibility_review":"x","recommendation":"ACCEPT","recommendation_reason":"ok","evidence":[]}),
+      json.dumps({"thought_process":"thinking","summary":"s","strengths":[],"major_concerns":[],"minor_concerns":[],"methodology_review":"m","novelty_review":"n","results_review":"r","reproducibility_review":"x","recommendation":"ACCEPT","recommendation_reason":"ok","evidence":[]}),
       json.dumps({"answer":"Informasi tersebut tidak ditemukan dalam paper.","found":False,"evidence":[]}),
-      json.dumps({"dimensions":[],"conclusion":"A and B differ","reasoning":"evidence","evidence":[]})])
+      json.dumps({"thought_process":"thinking","dimensions":[],"conclusion":"A and B differ","reasoning":"evidence","evidence":[]})])
     common={"request_id":"123e4567-e89b-12d3-a456-426614174000"}
     assert request('review', common|{"paper_id":1,"text":"x"}).status_code==200
     assert request('qa', common|{"paper_id":1,"text":"x","question":"dataset?"}).json()["data"]["found"] is False

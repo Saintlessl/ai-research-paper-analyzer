@@ -16,6 +16,7 @@ from .services.prompts import build_prompt
 from .services.structured_output import StructuredOutputError, generate_structured
 from .services.pipeline import DocumentProcessingError, _document_from_pages, chunk_document, process_pdf
 from .services.references import analyze_references
+from .services import vector_store
 from .settings import settings
 
 logger = logging.getLogger(__name__)
@@ -134,8 +135,11 @@ async def analyze(request: Request, provider: Provider = Depends(get_provider)):
             raise HTTPException(422, detail={"code": "VALIDATION_ERROR", "message": "Request validation failed"}) from exc
         document = _document_from_pages([body.text])
         citation_analysis = analyze_references(document, chunk_document(document), recent_year_cutoff=2021)
+    
+    # Store chunks in Vector Store
+    vector_store.store_paper_chunks(body.paper_id, document.chunks if hasattr(document, 'chunks') else chunk_document(document), provider)
+    
     return execute(body.request_id, "analysis", body.text, AnalysisData, provider, deterministic=citation_analysis)
-
 
 @api.post("/review")
 def review(body: TextRequest, provider: Provider = Depends(get_provider)):
@@ -144,7 +148,19 @@ def review(body: TextRequest, provider: Provider = Depends(get_provider)):
 
 @api.post("/qa")
 def qa(body: QARequest, provider: Provider = Depends(get_provider)):
-    return execute(body.request_id, "qa", body.text, QAData, provider, body.question)
+    try:
+        context_text = vector_store.search_relevant_chunks(body.paper_id, body.question, provider)
+    except ValueError as exc:
+        if str(exc) == "PAPER_NOT_READY":
+            raise HTTPException(400, detail={"code": "PAPER_NOT_READY", "message": "Dokumen masih dalam proses analisis AI. Mohon tunggu sebentar."})
+        raise
+    return execute(body.request_id, "qa", context_text, QAData, provider, body.question)
+
+
+@api.delete("/papers/{paper_id}")
+def delete_paper(paper_id: int):
+    vector_store.delete_paper_vectors(paper_id)
+    return {"success": True, "request_id": str(uuid4())}
 
 
 @api.post("/compare")

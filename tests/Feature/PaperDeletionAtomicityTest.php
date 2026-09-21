@@ -160,6 +160,7 @@ class PaperDeletionAtomicityTest extends TestCase
             'uploaded_by' => $researcher->id,
         ]);
         Storage::disk('paper-files')->put($paper->file_path, 'private PDF');
+        \Illuminate\Support\Facades\Queue::fake([\App\Jobs\DeletePaperVectorJob::class]);
         $events = DB::connection()->getEventDispatcher();
         $events->listen(TransactionCommitted::class, static function (): never {
             throw new \RuntimeException('Forced failure after database commit.');

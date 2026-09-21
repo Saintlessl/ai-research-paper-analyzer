@@ -355,6 +355,8 @@ class PaperController extends Controller
                 if (! $storage->delete($path)) {
                     throw new RuntimeException('Unable to delete the private PDF.');
                 }
+                
+                \App\Jobs\DeletePaperVectorJob::dispatch($paperId)->afterCommit();
             });
         } catch (Throwable $exception) {
             $this->rollBackInterruptedCommit($exception);

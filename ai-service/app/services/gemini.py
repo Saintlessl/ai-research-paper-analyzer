@@ -69,3 +69,16 @@ class GeminiProvider:
             raise
         except Exception as exc:
             raise ProviderError(self._classify(exc)) from exc
+
+    def embed_content(self, texts: list[str], model: str = "gemini-embedding-001") -> list[list[float]]:
+        try:
+            client = self._client or self._build_client()
+            response = client.models.embed_content(
+                model=model,
+                contents=texts,
+            )
+            # Response is typically an EmbedContentResponse which holds embeddings.
+            # Depending on google-genai version, it could be response.embeddings
+            return [emb.values for emb in response.embeddings]
+        except Exception as exc:
+            raise ProviderError(self._classify(exc)) from exc

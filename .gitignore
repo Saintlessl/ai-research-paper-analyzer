@@ -46,3 +46,4 @@ yarn-error.log*
 /dump.rdb
 *.log
 *.tmp
+/ai-service/.env

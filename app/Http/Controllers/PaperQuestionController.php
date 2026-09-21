@@ -16,6 +16,10 @@ class PaperQuestionController extends Controller
     {
         Gate::authorize('askQuestion', $paper);
 
+        if ($paper->status->value !== 'ANALYZED') {
+            return back()->withErrors(['qa' => 'PAPER_NOT_READY']);
+        }
+
         $validated = $request->validate([
             'question' => ['required', 'string', 'min:5', 'max:1000'],
         ]);

@@ -83,6 +83,7 @@ class CitationFinding(BaseModel):
 
 
 class AnalysisData(BaseModel):
+    thought_process: str = Field(description="Step-by-step reasoning before classification and scoring.")
     classification: Classification
     structure: ResearchStructure
     methodology: Methodology
@@ -106,6 +107,7 @@ class AnalysisData(BaseModel):
 
 
 class ReviewData(BaseModel):
+    thought_process: str = Field(description="Internal reasoning before deciding recommendation.")
     summary: str
     strengths: list[str]
     major_concerns: list[str]
@@ -126,6 +128,7 @@ class QAData(BaseModel):
 
 
 class CompareData(BaseModel):
+    thought_process: str = Field(description="Step-by-step reasoning comparing both papers.")
     dimensions: list[dict]
     conclusion: str
     reasoning: str
@@ -150,7 +153,9 @@ class TextRequest(BaseModel):
     text: str = Field(min_length=1)
 
 
-class QARequest(TextRequest):
+class QARequest(BaseModel):
+    request_id: UUID
+    paper_id: int
     question: str = Field(min_length=1)
 
 

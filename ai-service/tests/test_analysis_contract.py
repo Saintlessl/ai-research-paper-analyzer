@@ -27,6 +27,7 @@ def evidence(**overrides):
 
 def payload():
     return {
+        "thought_process": "thinking",
         "classification": {
             "paper_type": "experimental",
             "research_domain": "medicine",
@@ -83,5 +84,5 @@ def test_evidence_mapping_keeps_all_locator_fields_and_nullable_missing_values()
 def test_analysis_prompt_limits_scope_and_requires_not_found_nulls_and_evidence():
     prompt = build_prompt("analysis", "chunk context", AnalysisData)
     for phrase in ("exactly seven", "page", "section", "chunk_id", "excerpt", "confidence", "null", "not found"):
-        assert phrase in prompt
-    assert "do not perform peer review, citation analysis, comparison" in prompt.lower()
+        assert phrase in prompt.lower()
+    assert "do not perform peer review, comparison, or qa" in prompt.lower()

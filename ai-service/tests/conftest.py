@@ -10,6 +10,8 @@ class FakeProvider:
         value=self.responses.pop(0)
         if isinstance(value, Exception): raise value
         return value
+    def embed_content(self, texts: list[str], model: str = "test") -> list[list[float]]:
+        return [[0.1]*3072 for _ in texts]
 
 @pytest.fixture
 def fake_provider():
