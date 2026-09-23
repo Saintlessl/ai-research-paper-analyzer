@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Role;
 use App\Models\Permission;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class RolePermissionController extends Controller

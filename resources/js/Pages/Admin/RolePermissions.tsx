@@ -31,7 +31,7 @@ export default function RolePermissions({ roles, permissions }: { roles: Role[],
             newPermissions.push(permissionId);
         }
 
-        router.post(route('admin.roles.permissions.update', role.id), {
+        router.post(`/admin/roles/${role.id}/permissions`, {
             permissions: newPermissions
         }, {
             preserveScroll: true,
