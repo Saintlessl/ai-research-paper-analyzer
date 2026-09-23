@@ -38,8 +38,10 @@ export default function Authenticated({ header, children }: PropsWithChildren<{ 
     localStorage.setItem('sidebar-collapsed', String(next));
   };
 
+  const dashboardHref = (role === 'admin' || role === 'super_admin') ? '/admin/dashboard' : '/dashboard';
+
   const menuItems = [
-    { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['super_admin', 'admin', 'researcher', 'reviewer'] },
+    { label: 'Dashboard', href: dashboardHref, icon: LayoutDashboard, roles: ['super_admin', 'admin', 'researcher', 'reviewer'] },
     { label: 'Papers', href: '/papers', icon: BookOpen, roles: ['super_admin', 'admin', 'researcher'] },
     { label: 'Upload Paper', href: '/papers/create', icon: Upload, roles: ['researcher'] },
     { label: 'Assigned Reviews', href: '/reviews', icon: ClipboardList, roles: ['reviewer'] },
