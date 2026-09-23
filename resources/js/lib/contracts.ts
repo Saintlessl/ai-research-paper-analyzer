@@ -4,10 +4,10 @@ export type PaperState = 'uploaded' | 'queued' | 'processing' | 'analyzed' | 'fa
 export type Paginated<T> = { data: T[]; current_page?: number; last_page?: number; total?: number; links?: { url: string | null; label: string; active: boolean }[] };
 
 export const asArray = <T>(value?: T[] | Paginated<T> | null): T[] => Array.isArray(value) ? value : value?.data ?? [];
-export const normalizeRole = (user: RoleSource): Role | null => {
+export const normalizeRole = (user: RoleSource): string | null => {
     const candidate = user.role ?? (typeof user.roles?.[0] === 'string' ? user.roles[0] : user.roles?.[0]?.name);
     const role = candidate?.toLowerCase();
-    return role === 'admin' || role === 'reviewer' || role === 'researcher' ? role : null;
+    return role === 'admin' || role === 'reviewer' || role === 'researcher' || role === 'super_admin' ? role : null;
 };
 export const paperStatus = (value?: string | null) => {
     const state = (value ?? 'unknown').toLowerCase() as PaperState;

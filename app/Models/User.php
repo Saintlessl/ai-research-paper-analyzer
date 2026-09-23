@@ -65,11 +65,22 @@ class User extends Authenticatable
             ->all();
     }
 
+    public function hasPermissionTo(string $permission): bool
+    {
+        if ($this->hasRole(RoleName::SuperAdmin)) {
+            return true;
+        }
+
+        return $this->roles()->whereHas('permissions', function ($query) use ($permission) {
+            $query->where('name', $permission);
+        })->exists();
+    }
+
     public function primaryRole(): ?RoleName
     {
         $roleNames = $this->roleNames();
 
-        foreach ([RoleName::Admin, RoleName::Reviewer, RoleName::Researcher] as $role) {
+        foreach ([RoleName::SuperAdmin, RoleName::Admin, RoleName::Reviewer, RoleName::Researcher] as $role) {
             if (in_array($role, $roleNames, true)) {
                 return $role;
             }
@@ -84,7 +95,8 @@ class User extends Authenticatable
     public function capabilities(): array
     {
         $roleNames = $this->roleNames();
-        $isAdmin = in_array(RoleName::Admin, $roleNames, true);
+        $isSuperAdmin = in_array(RoleName::SuperAdmin, $roleNames, true);
+        $isAdmin = in_array(RoleName::Admin, $roleNames, true) || $isSuperAdmin;
 
         return [
             'upload_papers' => $isAdmin || in_array(RoleName::Researcher, $roleNames, true),

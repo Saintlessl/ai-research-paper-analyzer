@@ -19,6 +19,13 @@ class DatabaseSeeder extends Seeder
         $adminRole = Role::where('name', RoleName::Admin->value)->first();
         $researcherRole = Role::where('name', RoleName::Researcher->value)->first();
         $reviewerRole = Role::where('name', RoleName::Reviewer->value)->first();
+        $superAdminRole = Role::where('name', RoleName::SuperAdmin->value)->first();
+
+        $superAdmin = User::firstOrCreate(
+            ['email' => 'superadmin@example.com'],
+            ['name' => 'Super Admin', 'password' => bcrypt('password'), 'email_verified_at' => now()]
+        );
+        $superAdmin->roles()->syncWithoutDetaching([$superAdminRole->id]);
 
         $admin = User::firstOrCreate(
             ['email' => 'admin@example.com'],

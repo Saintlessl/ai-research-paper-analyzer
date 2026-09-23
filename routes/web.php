@@ -54,12 +54,12 @@ Route::get('/dashboard', function (\Illuminate\Http\Request $request) {
     }
 
     // Admins redirect to admin dashboard
-    if ($user->hasRole('admin')) {
+    if ($user->hasRole('admin') || $user->hasRole('super_admin')) {
         return redirect()->route('admin.dashboard');
     }
 
     return Inertia::render('Dashboard');
-})->middleware(['auth', 'role:researcher,reviewer,admin'])->name('dashboard');
+})->middleware(['auth', 'role:researcher,reviewer,admin,super_admin'])->name('dashboard');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/papers', [PaperController::class, 'index'])->name('papers.index');
@@ -90,12 +90,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/papers/{paper}/export', [\App\Http\Controllers\ExportController::class, 'show'])->name('papers.export');
 });
 
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'permission:access_admin_panel'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('dashboard');
-    Route::post('/jobs/{job}/retry', [\App\Http\Controllers\AdminController::class, 'retryJob'])->name('jobs.retry');
-    Route::get('/users', [\App\Http\Controllers\AdminController::class, 'users'])->name('users');
-    Route::patch('/users/{user}/role', [\App\Http\Controllers\AdminController::class, 'updateUserRole'])->name('users.updateRole');
-    Route::get('/logs', [\App\Http\Controllers\AdminController::class, 'logs'])->name('logs');
+    Route::post('/jobs/{job}/retry', [\App\Http\Controllers\AdminController::class, 'retryJob'])->name('jobs.retry')->middleware('permission:manage_jobs');
+    Route::get('/users', [\App\Http\Controllers\AdminController::class, 'users'])->name('users')->middleware('permission:manage_users');
+    Route::patch('/users/{user}/role', [\App\Http\Controllers\AdminController::class, 'updateUserRole'])->name('users.updateRole')->middleware('permission:manage_users');
+    Route::get('/logs', [\App\Http\Controllers\AdminController::class, 'logs'])->name('logs')->middleware('permission:view_logs');
+    
+    // Roles & Permissions UI
+    Route::get('/roles-permissions', [\App\Http\Controllers\RolePermissionController::class, 'index'])->name('roles.index')->middleware('permission:manage_role_permissions');
+    Route::post('/roles/{role}/permissions', [\App\Http\Controllers\RolePermissionController::class, 'update'])->name('roles.permissions.update')->middleware('permission:manage_role_permissions');
 });
 
 Route::middleware('auth')->group(function () {

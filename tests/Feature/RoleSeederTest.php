@@ -40,6 +40,6 @@ class RoleSeederTest extends TestCase
             collect(RoleName::cases())->pluck('value')->sort()->values()->all(),
             Role::query()->pluck('name')->map->value->sort()->values()->all(),
         );
-        $this->assertDatabaseCount('users', 6);
+        $this->assertDatabaseCount('users', 7);
     }
 }

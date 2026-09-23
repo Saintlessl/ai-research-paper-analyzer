@@ -1,6 +1,6 @@
 import React, { PropsWithChildren, ReactNode, useState, useEffect } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutDashboard, BookOpen, Upload, Users, ClipboardList, Activity, ChevronLeft, ChevronRight, UserRound, LogOut } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Upload, Users, ClipboardList, Activity, ChevronLeft, ChevronRight, UserRound, LogOut, Shield } from 'lucide-react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import { AuthenticatedPageProps } from '@/types';
 import { normalizeRole } from '@/lib/contracts';
@@ -39,11 +39,12 @@ export default function Authenticated({ header, children }: PropsWithChildren<{ 
   };
 
   const menuItems = [
-    { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['admin', 'researcher', 'reviewer'] },
-    { label: 'Papers', href: '/papers', icon: BookOpen, roles: ['admin', 'researcher'] },
+    { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['super_admin', 'admin', 'researcher', 'reviewer'] },
+    { label: 'Papers', href: '/papers', icon: BookOpen, roles: ['super_admin', 'admin', 'researcher'] },
     { label: 'Upload Paper', href: '/papers/create', icon: Upload, roles: ['researcher'] },
     { label: 'Assigned Reviews', href: '/reviews', icon: ClipboardList, roles: ['reviewer'] },
-    { label: 'Users', href: '/admin/users', icon: Users, roles: ['admin'] },
+    { label: 'Users', href: '/admin/users', icon: Users, roles: ['super_admin', 'admin'] },
+    { label: 'Roles', href: '/admin/roles-permissions', icon: Shield, roles: ['super_admin'] },
   ].filter(item => item.roles.includes(role as string));
 
   const [userMenuOpen, setUserMenuOpen] = useState(false);

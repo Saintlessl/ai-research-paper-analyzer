@@ -46,7 +46,7 @@ class PaperPolicyTest extends TestCase
     {
         $researcher = $this->userWithRole(RoleName::Researcher);
         $reviewer = $this->userWithRole(RoleName::Reviewer);
-        $admin = $this->userWithRole(RoleName::Admin);
+        $admin = $this->userWithRole(RoleName::SuperAdmin);
 
         $this->assertTrue($researcher->can('viewAny', Paper::class));
         $this->assertTrue($researcher->can('create', Paper::class));
@@ -85,7 +85,7 @@ class PaperPolicyTest extends TestCase
     public function test_admin_can_perform_every_paper_action(): void
     {
         $owner = $this->userWithRole(RoleName::Researcher);
-        $admin = $this->userWithRole(RoleName::Admin);
+        $admin = $this->userWithRole(RoleName::SuperAdmin);
         $paper = $this->paperUploadedBy($owner);
 
         foreach (['view', 'viewAnalysis', 'update', 'delete', 'analyze'] as $ability) {

@@ -10,7 +10,7 @@ class PaperPolicy
 {
     public function before(User $user): ?bool
     {
-        return $user->hasRole(RoleName::Admin) ? true : null;
+        return $user->hasRole(RoleName::SuperAdmin) ? true : null;
     }
 
     public function viewAny(User $user): bool
