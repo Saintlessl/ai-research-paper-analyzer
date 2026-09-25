@@ -94,6 +94,27 @@ export default function Authenticated({ header, children }: PropsWithChildren<{ 
               <p className="text-[10px] uppercase font-bold text-neu-accent-text mt-1 tracking-wider">{role}</p>
             </div>
             <div className="p-1">
+                {auth.is_actual_super_admin && !auth.impersonating && (
+                    <div className="px-3 py-2 border-b border-neu-hairline mb-1 bg-amber-500/10 rounded-sm">
+                        <label className="text-[10px] uppercase font-bold text-amber-500 mb-1 flex justify-between">
+                            <span>Testing Mode</span>
+                            <Shield className="w-3 h-3" />
+                        </label>
+                        <select 
+                            className="w-full text-xs font-bold px-2 py-1.5 rounded bg-neu-surface border border-neu-border text-neu-text cursor-pointer focus:ring-0 focus:outline-none"
+                            value={auth.active_role_override || 'super_admin'}
+                            onChange={(e) => {
+                                setUserMenuOpen(false);
+                                router.post('/admin/switch-role', { role: e.target.value });
+                            }}
+                        >
+                            <option value="super_admin">Super Admin</option>
+                            <option value="admin">Admin</option>
+                            <option value="reviewer">Reviewer</option>
+                            <option value="researcher">Researcher</option>
+                        </select>
+                    </div>
+                )}
               <Link href="/profile" className="flex items-center gap-2 rounded-neu-sm px-3 py-2 text-sm hover:bg-neu-surface hover:text-neu-accent-text transition-colors">
                 <UserRound className="h-4 w-4" /> Profile
               </Link>
@@ -193,22 +214,6 @@ export default function Authenticated({ header, children }: PropsWithChildren<{ 
             </button>
           </div>
         )}
-        
-        {user && auth.is_actual_super_admin && !auth.impersonating && (
-          <div className="bg-amber-500 text-white px-4 py-2 sm:px-6 lg:px-8 flex justify-between items-center text-sm font-bold border-b border-amber-600">
-            <span>Testing Mode: You are viewing the app as a <strong>{auth.active_role_override || 'Super Admin'}</strong></span>
-            <select 
-              className="text-black text-xs font-bold px-2 py-1 rounded"
-              value={auth.active_role_override || 'super_admin'}
-              onChange={(e) => router.post('/admin/switch-role', { role: e.target.value })}
-            >
-              <option value="super_admin">Super Admin</option>
-              <option value="admin">Admin</option>
-              <option value="reviewer">Reviewer</option>
-              <option value="researcher">Researcher</option>
-            </select>
-          </div>
-        )}
         {flash?.success && (
           <div className="mx-4 mt-4 sm:mx-6 lg:mx-8">
             <NeuCard className="border-l-4 border-l-status-analyzed-fill bg-status-analyzed-fill/5" padding="sm" elevation="flat">
@@ -233,3 +238,4 @@ export default function Authenticated({ header, children }: PropsWithChildren<{ 
     </div>
   );
 }
+
