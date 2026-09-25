@@ -81,12 +81,14 @@ export default function Users({ users, availableRoles }: any) {
                                         >
                                             Change Role
                                         </button>
-                                        <button
-                                            onClick={() => router.post(`/admin/users/${user.id}/impersonate`)}
-                                            className="text-xs font-bold text-neu-primary hover:underline"
-                                        >
-                                            Impersonate
-                                        </button>
+                                        {!user.roles?.some((r: any) => r.name === 'super_admin') && (
+                                            <button
+                                                onClick={() => router.post(`/admin/users/${user.id}/impersonate`)}
+                                                className="text-xs font-bold text-neu-primary hover:underline"
+                                            >
+                                                Impersonate
+                                            </button>
+                                        )}
                                     </div>
                                 )}
                             </td>
