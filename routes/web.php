@@ -100,12 +100,16 @@ Route::middleware(['auth', 'permission:access_admin_panel'])->prefix('admin')->n
     // Roles & Permissions UI
     Route::get('/roles-permissions', [\App\Http\Controllers\RolePermissionController::class, 'index'])->name('roles.index')->middleware('permission:manage_role_permissions');
     Route::post('/roles/{role}/permissions', [\App\Http\Controllers\RolePermissionController::class, 'update'])->name('roles.permissions.update')->middleware('permission:manage_role_permissions');
+    
+    // Impersonation
+    Route::post('/users/{user}/impersonate', [\App\Http\Controllers\AdminController::class, 'impersonate'])->name('users.impersonate')->middleware('permission:manage_users');
 });
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::post('/leave-impersonation', [\App\Http\Controllers\AdminController::class, 'leaveImpersonation'])->name('impersonation.leave');
 });
 
 require __DIR__.'/auth.php';

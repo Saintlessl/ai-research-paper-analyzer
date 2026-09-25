@@ -74,12 +74,20 @@ export default function Users({ users, availableRoles }: any) {
                                         </NeuButton>
                                     </div>
                                 ) : (
-                                    <button
-                                        onClick={() => { setEditingId(user.id); setSelectedRole(user.roles?.[0]?.name || ''); }}
-                                        className="text-xs font-bold text-neu-accent-text hover:underline"
-                                    >
-                                        Change Role
-                                    </button>
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            onClick={() => { setEditingId(user.id); setSelectedRole(user.roles?.[0]?.name || ''); }}
+                                            className="text-xs font-bold text-neu-accent-text hover:underline"
+                                        >
+                                            Change Role
+                                        </button>
+                                        <button
+                                            onClick={() => router.post(`/admin/users/${user.id}/impersonate`)}
+                                            className="text-xs font-bold text-neu-primary hover:underline"
+                                        >
+                                            Impersonate
+                                        </button>
+                                    </div>
                                 )}
                             </td>
                         </NeuTableRow>

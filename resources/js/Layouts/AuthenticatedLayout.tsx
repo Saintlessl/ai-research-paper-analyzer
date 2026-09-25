@@ -1,5 +1,5 @@
 import React, { PropsWithChildren, ReactNode, useState, useEffect } from 'react';
-import { Link, usePage } from '@inertiajs/react';
+import { Link, usePage, router } from '@inertiajs/react';
 import { LayoutDashboard, BookOpen, Upload, Users, ClipboardList, Activity, ChevronLeft, ChevronRight, UserRound, LogOut, Shield } from 'lucide-react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import { AuthenticatedPageProps } from '@/types';
@@ -182,6 +182,17 @@ export default function Authenticated({ header, children }: PropsWithChildren<{ 
         "min-w-0 transition-all duration-300 flex flex-col min-h-screen pt-16",
         !isMobile ? (isCollapsed ? "pl-[80px]" : "pl-[260px]") : "pb-16"
       )}>
+        {user && auth.impersonating && (
+          <div className="bg-neu-primary text-neu-primary-text px-4 py-3 sm:px-6 lg:px-8 flex justify-between items-center text-sm font-bold border-b border-neu-border">
+            <span>You are currently impersonating {user.name} ({user.role}).</span>
+            <button 
+              onClick={() => router.post('/leave-impersonation')} 
+              className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded-neu-sm transition-colors"
+            >
+              Leave Impersonation
+            </button>
+          </div>
+        )}
         {flash?.success && (
           <div className="mx-4 mt-4 sm:mx-6 lg:mx-8">
             <NeuCard className="border-l-4 border-l-status-analyzed-fill bg-status-analyzed-fill/5" padding="sm" elevation="flat">

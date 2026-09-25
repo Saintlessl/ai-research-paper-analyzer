@@ -92,4 +92,29 @@ class AdminController extends Controller
             'logs' => AuditLog::with('actor')->latest()->paginate(50),
         ]);
     }
+
+    public function impersonate(Request $request, User $user): RedirectResponse
+    {
+        // Don't allow impersonating other super admins
+        if ($user->hasRole(RoleName::SuperAdmin)) {
+            abort(403, 'Cannot impersonate a Super Admin.');
+        }
+
+        $request->session()->put('impersonated_by', $request->user()->id);
+        \Illuminate\Support\Facades\Auth::login($user);
+
+        return redirect()->route('dashboard');
+    }
+
+    public function leaveImpersonation(Request $request): RedirectResponse
+    {
+        if (!$request->session()->has('impersonated_by')) {
+            abort(403, 'Not currently impersonating.');
+        }
+
+        $originalAdminId = $request->session()->pull('impersonated_by');
+        \Illuminate\Support\Facades\Auth::loginUsingId($originalAdminId);
+
+        return redirect()->route('admin.users');
+    }
 }

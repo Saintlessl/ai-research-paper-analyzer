@@ -55,6 +55,7 @@ class HandleInertiaRequests extends Middleware
                     'review_papers' => false,
                     'manage_system' => false,
                 ],
+                'impersonating' => $request->session()->has('impersonated_by'),
             ],
         ];
     }
