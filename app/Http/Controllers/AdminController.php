@@ -117,4 +117,21 @@ class AdminController extends Controller
 
         return redirect()->route('admin.users');
     }
+
+    public function switchRole(Request $request): RedirectResponse
+    {
+        $request->validate(['role' => 'required|string']);
+        
+        if (!$request->user()->roles()->where('name', \App\Enums\RoleName::SuperAdmin->value)->exists()) {
+            abort(403);
+        }
+
+        if ($request->role === 'super_admin') {
+            $request->session()->forget('active_role_override');
+        } else {
+            $request->session()->put('active_role_override', $request->role);
+        }
+
+        return redirect()->route('dashboard');
+    }
 }

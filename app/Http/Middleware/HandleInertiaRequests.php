@@ -56,6 +56,8 @@ class HandleInertiaRequests extends Middleware
                     'manage_system' => false,
                 ],
                 'impersonating' => $request->session()->has('impersonated_by'),
+                'is_actual_super_admin' => $user?->roles()->where('name', \App\Enums\RoleName::SuperAdmin->value)->exists() ?? false,
+                'active_role_override' => $request->session()->get('active_role_override'),
             ],
         ];
     }

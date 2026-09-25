@@ -47,9 +47,25 @@ class User extends Authenticatable
         return $this->belongsToMany(Role::class);
     }
 
+    public function getActiveRoleOverride(): ?string
+    {
+        if (request()->hasSession() && session()->has('active_role_override')) {
+            // ONLY apply if the user ACTUALLY has SuperAdmin in DB!
+            $actualSuper = $this->roles()->where('name', RoleName::SuperAdmin->value)->exists();
+            if ($actualSuper) {
+                return session('active_role_override');
+            }
+        }
+        return null;
+    }
+
     public function hasRole(RoleName|string $role): bool
     {
         $name = $role instanceof RoleName ? $role->value : $role;
+
+        if ($override = $this->getActiveRoleOverride()) {
+            return $override === $name;
+        }
 
         return $this->roles()->where('name', $name)->exists();
     }
@@ -59,6 +75,10 @@ class User extends Authenticatable
      */
     public function roleNames(): array
     {
+        if ($override = $this->getActiveRoleOverride()) {
+            return [RoleName::from($override)];
+        }
+
         return $this->resolvedRoles()
             ->map(fn (Role $role): RoleName => $role->name)
             ->values()
@@ -69,6 +89,12 @@ class User extends Authenticatable
     {
         if ($this->hasRole(RoleName::SuperAdmin)) {
             return true;
+        }
+
+        if ($override = $this->getActiveRoleOverride()) {
+            return Role::where('name', $override)->whereHas('permissions', function ($query) use ($permission) {
+                $query->where('name', $permission);
+            })->exists();
         }
 
         return $this->roles()->whereHas('permissions', function ($query) use ($permission) {

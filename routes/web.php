@@ -110,6 +110,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::post('/leave-impersonation', [\App\Http\Controllers\AdminController::class, 'leaveImpersonation'])->name('impersonation.leave');
+    Route::post('/admin/switch-role', [\App\Http\Controllers\AdminController::class, 'switchRole'])->name('admin.switchRole');
 });
 
 require __DIR__.'/auth.php';
